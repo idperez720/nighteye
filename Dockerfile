@@ -1,6 +1,9 @@
 # Usa la imagen base de Ultralytics
 FROM ultralytics/ultralytics:latest-arm64
 
+# Instalar libgl1 para soporte de OpenGL
+RUN apt-get update && apt-get install -y libgl1-mesa-glx
+
 # Establece el directorio de trabajo dentro del contenedor
 WORKDIR /usr/src/app
 
