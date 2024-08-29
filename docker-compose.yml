@@ -1,0 +1,9 @@
+version: '3.10'
+
+services:
+  ultralytics-app:
+    build: .
+    container_name: ultralytics-container
+    volumes:
+      - .:/usr/src/app
+    command: python app/local/main.py
