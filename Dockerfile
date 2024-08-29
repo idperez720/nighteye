@@ -8,4 +8,4 @@ WORKDIR /usr/src/app
 COPY . .
 
 # Ejecuta el script principal
-CMD ["python", "app/local/local_detection.py"]
+CMD ["python", "local/local_detection.py"]
