@@ -8,4 +8,4 @@ services:
       - .:/usr/src/app
     devices:
       - /dev/video0:/dev/video0
-    command: python app/local/main.py
+    command: python app/local/local_detection.py
