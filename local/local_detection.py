@@ -6,7 +6,9 @@ from datetime import datetime
 
 def image_prediction(image_path: str):
     model = YOLO("models/yolov8n.pt")
-    results = model(image_path)
+    model.export(format="ncnn")
+    ncnn_model = YOLO("yolov8n_ncnn_model")
+    results = ncnn_model(image_path)
     results[0].save(f"{image_path.split('.')[0]}_result.jpg")
 
 
