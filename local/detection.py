@@ -1,12 +1,21 @@
-import cv2
+""" Script para capturar imágenes desde la cámara y enviarlas a un PC remoto. """
+
 import os
+import argparse
 import time
-from ultralytics import YOLO
 from datetime import datetime
+
+import cv2
 import requests
+from ultralytics import YOLO
 
 
 def init_model() -> YOLO:
+    """Inicializa el modelo YOLO y lo exporta a NCNN.
+
+    Returns:
+        YOLO: Modelo YOLO exportado a NCNN.
+    """
     model = YOLO("models/yolov8n.pt")
     model.export(format="ncnn")
     ncnn_model = YOLO("models/yolov8n_ncnn_model")
@@ -29,7 +38,7 @@ def image_prediction(model: YOLO, image_path: str) -> str:
     return result_path
 
 
-def upload_image(
+def upload_image(  # pylint: disable=w0102
     image_path: str, ip_hostname: list[str] = ["192.168.2.14", "ID-DESKTOP.local"]
 ) -> None:
     """
@@ -42,7 +51,7 @@ def upload_image(
     url = f"http://{ip_hostname[1]}:8000/"
     with open(image_path, "rb") as f:
         headers = {"X-File-Name": os.path.basename(image_path)}
-        response = requests.post(url, headers=headers, data=f)
+        response = requests.post(url, headers=headers, data=f, timeout=120)
         print(f"Upload response: {response.text}")
 
 
@@ -113,18 +122,35 @@ def capture_and_process_images(
 
 
 def main():
+    """Función principal del script."""
+    # Crear una nueva carpeta para cada ejecución
+    # Configuración de argparse para recibir parámetros
+    parser = argparse.ArgumentParser(description="Captura y procesa imágenes.")
+    parser.add_argument(
+        "--total_duration",
+        type=int,
+        default=10,
+        help="Duración total de la captura en segundos",
+    )
+    parser.add_argument(
+        "--interval", type=int, default=2, help="Intervalo entre capturas en segundos"
+    )
+    parser.add_argument(
+        "--server_inference",
+        type=bool,
+        default=False,
+        help="Realizar inferencia en el servidor",
+    )
+    args = parser.parse_args()
+
     # Crear una nueva carpeta para cada ejecución
     model = init_model()
     execution_folder = datetime.now().strftime("%Y%m%d_%H%M%S")
     output_folder = os.path.join("data_collection", execution_folder)
     os.makedirs(output_folder, exist_ok=True)
 
-    # Configura parámetros
-    total_duration = 10
-    interval = 2
-
     # Captura y procesa imágenes
-    capture_and_process_images(model, output_folder, total_duration, interval)
+    capture_and_process_images(model, output_folder, args.total_duration, args.interval)
 
 
 if __name__ == "__main__":
