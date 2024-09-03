@@ -1,4 +1,4 @@
-name: nighteye_lite_test
+name: nighteye_lite
 channels:
   - pytorch
   - defaults

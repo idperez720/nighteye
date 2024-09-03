@@ -1,7 +1,7 @@
 # NightEye Lite (Raspberry execution)
 
 ## Requisitos
-- Raspberry Pi con Raspberry Pi OS (Debian-based)
+- Raspberry Pi con Ubuntu 24.04.1 LTS aarch64
 - Conexión a Internet
 
 ## Instalación y ejecución
@@ -9,17 +9,16 @@
 Clona el repositorio y ejecuta el script de instalación:
 
 ```bash
-git clone <tu-repositorio-url>
-cd <nombre-del-repositorio>
-bash install.sh
+git clone https://github.com/idperez720/nighteye.git
+cd nighteye
 
+### Si no tienes conda ejecutar el comando
+bash install_conda.sh
 
-Este script instalará Miniconda si es necesario, configurará el entorno Conda y ejecutará el programa.
+Este script instalará Miniconda si es necesario
 
-### 4. Probar y desplegar
-Una vez que hayas creado los archivos `environment.yml` y `install.sh`, asegúrate de probar el script en una Raspberry Pi para verificar que todo funcione como se espera. 
+### Crear el ambiente
+conda env create -f environment.yml
 
-### 5. Version Control
-Asegúrate de agregar los archivos `install.sh` y `environment.yml` a tu control de versiones para que otros usuarios puedan utilizarlos.
-
-Con este enfoque, podrás clonar el repositorio y ejecutar un único comando (`bash install.sh`) para configurar todo el entorno y ejecutar tu programa en la Raspberry Pi.
+### Ejecucion deteccion en local
+python local/local_detection.py
