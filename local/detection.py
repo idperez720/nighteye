@@ -56,7 +56,11 @@ def upload_image(  # pylint: disable=w0102
 
 
 def capture_and_process_images(
-    model, output_folder: str, total_duration: int, interval: int
+    model,
+    output_folder: str,
+    total_duration: int,
+    interval: int,
+    server_inference: bool,
 ) -> None:
     """
     Captura imágenes desde la cámara, las procesa y las envía al PC.
@@ -109,9 +113,12 @@ def capture_and_process_images(
             print(f"Foto guardada en: {image_path}")
 
             # Procesa la imagen y la sube
-            result_path = image_prediction(model, image_path)
-            upload_image(result_path)
-            os.remove(image_path)
+            if server_inference:
+                upload_image(image_path)
+            else:
+                result_path = image_prediction(model, image_path)
+                upload_image(result_path)
+                os.remove(image_path)
 
             # Reinicia el temporizador
             start_time = time.time()
@@ -150,7 +157,9 @@ def main():
     os.makedirs(output_folder, exist_ok=True)
 
     # Captura y procesa imágenes
-    capture_and_process_images(model, output_folder, args.total_duration, args.interval)
+    capture_and_process_images(
+        model, output_folder, args.total_duration, args.interval, args.server_inference
+    )
 
 
 if __name__ == "__main__":
