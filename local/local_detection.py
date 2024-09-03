@@ -3,13 +3,21 @@ import os
 import time
 from ultralytics import YOLO
 from datetime import datetime
+import requests
+
 
 def image_prediction(image_path: str):
     model = YOLO("models/yolov8n.pt")
-    # model.export(format="ncnn")
-    # ncnn_model = YOLO("models/yolov8n_ncnn_model")
     results = model(image_path)
     results[0].save(f"{image_path.split('.')[0]}_result.jpg")
+
+
+def upload_image(image_path: str, ip: str = "192.168.2.14"):
+    url = f"http://{ip}:8000/"  # Reemplaza PC_IP_ADDRESS con la IP de tu PC
+    with open(image_path, "rb") as f:
+        headers = {"X-File-Name": os.path.basename(image_path)}
+        response = requests.post(url, headers=headers, data=f)
+        print(response.text)
 
 
 # Crear una nueva carpeta para cada ejecución
@@ -49,10 +57,18 @@ while not condition:
         condition = True
 
     # Agrega el tiempo transcurrido al frame
-    cv2.putText(frame, f"Tiempo transcurrido: {elapsed_time_sec}s",
-                (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2, cv2.LINE_AA)
+    cv2.putText(
+        frame,
+        f"Tiempo transcurrido: {elapsed_time_sec}s",
+        (10, 30),
+        cv2.FONT_HERSHEY_SIMPLEX,
+        1,
+        (0, 255, 0),
+        2,
+        cv2.LINE_AA,
+    )
 
-    # Verifica si han pasado 3 segundos
+    # Verifica si han pasado 2 segundos
     if curent_elapsed_time >= interval:
         print(elapsed_time)
         # Guardar la imagen en la carpeta de salida
@@ -61,7 +77,8 @@ while not condition:
         cv2.imwrite(image_path, frame)
         print(f"Foto guardada en: {image_path}")
         image_prediction(image_path)
-        os.remove(image_path)
+        upload_image(image_path)  # Envía la imagen al PC
+        os.remove(image_path)  # Elimina la imagen local
         # Reinicia el temporizador
         start_time = time.time()
 
@@ -69,9 +86,6 @@ while not condition:
     if elapsed_time >= total_duration:
         print("Finalizando captura de fotos...")
         break
-
-    # Si presionas la tecla 'q', sale del bucle
-    # En un entorno sin interfaz gráfica, este código no funcionará
 
 # Libera la cámara
 cap.release()

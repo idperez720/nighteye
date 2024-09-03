@@ -11,3 +11,4 @@ dependencies:
   - pip:
       - opencv-python-headless
       - ultralytics
+      - requests
