@@ -23,10 +23,9 @@ class CustomHandler(http.server.SimpleHTTPRequestHandler):
         # Asumiendo que los archivos son enviados directamente como binarios
         file_name = self.headers.get("X-File-Name", "uploaded_file.png")
         file_path = os.path.join(UPLOAD_FOLDER, file_name)
-        if "result" in file_name:
-            with open(file_path, "wb") as f:
-                f.write(post_data)
-        else:
+        with open(file_path, "wb") as f:
+            f.write(post_data)
+        if "result" not in file_name:
             model = init_model()
             image_prediction(model, file_path)
 
