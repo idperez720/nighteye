@@ -1,0 +1,13 @@
+name: nighteye_lite_test
+channels:
+  - pytorch
+  - defaults
+dependencies:
+  - python=3.10
+  - pytorch
+  - torchvision
+  - cpuonly
+  - pip
+  - pip:
+      - opencv-python-headless
+      - ultralytics
