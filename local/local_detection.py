@@ -5,11 +5,15 @@ from ultralytics import YOLO
 from datetime import datetime
 import requests
 
-# Configura el modelo YOLO una vez
-model = YOLO("models/yolov8n.pt")
+
+def init_model() -> YOLO:
+    model = YOLO("models/yolov8n.pt")
+    model.export(format="ncnn")
+    ncnn_model = YOLO("models/yolov8n_ncnn_model")
+    return ncnn_model
 
 
-def image_prediction(image_path: str) -> str:
+def image_prediction(model: YOLO, image_path: str) -> str:
     """
     Realiza la predicción en la imagen y guarda el resultado.
 
@@ -43,7 +47,7 @@ def upload_image(
 
 
 def capture_and_process_images(
-    output_folder: str, total_duration: int, interval: int
+    model, output_folder: str, total_duration: int, interval: int
 ) -> None:
     """
     Captura imágenes desde la cámara, las procesa y las envía al PC.
@@ -96,7 +100,7 @@ def capture_and_process_images(
             print(f"Foto guardada en: {image_path}")
 
             # Procesa la imagen y la sube
-            result_path = image_prediction(image_path)
+            result_path = image_prediction(model, image_path)
             upload_image(result_path)
             os.remove(image_path)
 
@@ -110,6 +114,7 @@ def capture_and_process_images(
 
 def main():
     # Crear una nueva carpeta para cada ejecución
+    model = init_model()
     execution_folder = datetime.now().strftime("%Y%m%d_%H%M%S")
     output_folder = os.path.join("data_collection", execution_folder)
     os.makedirs(output_folder, exist_ok=True)
@@ -119,7 +124,7 @@ def main():
     interval = 2
 
     # Captura y procesa imágenes
-    capture_and_process_images(output_folder, total_duration, interval)
+    capture_and_process_images(model, output_folder, total_duration, interval)
 
 
 if __name__ == "__main__":
