@@ -151,7 +151,12 @@ def main():
     args = parser.parse_args()
 
     # Crear una nueva carpeta para cada ejecución
-    model = init_model()
+    if not args.server_inference:
+        print("Inferencia local")
+        model = init_model()
+    else:
+        print("Inferencia en el servidor")
+        model = None
     execution_folder = datetime.now().strftime("%Y%m%d_%H%M%S")
     output_folder = os.path.join("data_collection", execution_folder)
     os.makedirs(output_folder, exist_ok=True)
