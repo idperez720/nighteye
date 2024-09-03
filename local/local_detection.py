@@ -5,87 +5,122 @@ from ultralytics import YOLO
 from datetime import datetime
 import requests
 
+# Configura el modelo YOLO una vez
+model = YOLO("models/yolov8n.pt")
 
-def image_prediction(image_path: str):
-    model = YOLO("models/yolov8n.pt")
+
+def image_prediction(image_path: str) -> str:
+    """
+    Realiza la predicción en la imagen y guarda el resultado.
+
+    Args:
+        image_path (str): Ruta de la imagen de entrada.
+
+    Returns:
+        str: Ruta del archivo de resultado.
+    """
     results = model(image_path)
-    results[0].save(f"{image_path.split('.')[0]}_result.jpg")
+    result_path = f"{image_path.split('.')[0]}_result.jpg"
+    results[0].save(result_path)
+    return result_path
 
 
-def upload_image(image_path: str, ip: str = "192.168.2.14"):
-    url = f"http://{ip}:8000/"  # Reemplaza PC_IP_ADDRESS con la IP de tu PC
+def upload_image(
+    image_path: str, ip_hostname: list[str] = ["192.168.2.14", "ID-DESKTOP.local"]
+) -> None:
+    """
+    Envía la imagen al PC especificado.
+
+    Args:
+        image_path (str): Ruta de la imagen a enviar.
+        ip (str): IP del PC receptor.
+    """
+    url = f"http://{ip_hostname[1]}:8000/"
     with open(image_path, "rb") as f:
         headers = {"X-File-Name": os.path.basename(image_path)}
         response = requests.post(url, headers=headers, data=f)
-        print(response.text)
+        print(f"Upload response: {response.text}")
 
 
-# Crear una nueva carpeta para cada ejecución
-execution_folder = datetime.now().strftime("%Y%m%d_%H%M%S")
-output_folder = os.path.join("data_collection", execution_folder)
-os.makedirs(output_folder, exist_ok=True)
+def capture_and_process_images(
+    output_folder: str, total_duration: int, interval: int
+) -> None:
+    """
+    Captura imágenes desde la cámara, las procesa y las envía al PC.
 
-# Abre la cámara (normalmente, 0 es la cámara predeterminada)
-cap = cv2.VideoCapture(0)
+    Args:
+        output_folder (str): Carpeta donde se guardarán las imágenes.
+        total_duration (int): Duración total en segundos para la captura.
+        interval (int): Intervalo en segundos entre cada captura de imagen.
+    """
+    cap = cv2.VideoCapture(0)
+    if not cap.isOpened():
+        print("Error: No se puede abrir la cámara")
+        return
 
-if not cap.isOpened():
-    print("Error: No se puede abrir la cámara")
-    exit()
+    start_time_total = time.time()
+    start_time = start_time_total
 
-# Duración total en segundos y intervalo de captura en segundos
-total_duration = 10
-interval = 2
-start_time_total = time.time()
-start_time = time.time()
-condition = False
+    while time.time() - start_time_total < total_duration:
+        ret, frame = cap.read()
+        if not ret:
+            print("Error: No se puede recibir frame (finalizando...)")
+            break
 
-while not condition:
-    # Captura frame por frame
-    ret, frame = cap.read()
+        # Calcula el tiempo transcurrido y el tiempo actual
+        current_time = time.time()
+        elapsed_time_sec = int(current_time - start_time_total)
+        curent_elapsed_time = current_time - start_time
 
-    # Si no se pudo leer el frame, salir
-    if not ret:
-        print("Error: No se puede recibir frame (finalizando...)")
-        break
+        # Agrega el tiempo transcurrido al frame
+        cv2.putText(
+            frame,
+            f"Tiempo transcurrido: {elapsed_time_sec}s",
+            (10, 30),
+            cv2.FONT_HERSHEY_SIMPLEX,
+            1,
+            (0, 255, 0),
+            2,
+            cv2.LINE_AA,
+        )
 
-    # Calcula el tiempo transcurrido desde el inicio
-    current_time = time.time()
-    elapsed_time = current_time - start_time_total
-    curent_elapsed_time = current_time - start_time
-    elapsed_time_sec = int(elapsed_time)
-    if elapsed_time_sec == 12:
-        condition = True
+        # Verifica si ha pasado el intervalo
+        if curent_elapsed_time >= interval:
+            # Genera un nombre único usando timestamp en milisegundos
+            timestamp = int(time.time() * 1000)
+            image_name = f"photo_{timestamp}.png"
+            image_path = os.path.join(output_folder, image_name)
 
-    # Agrega el tiempo transcurrido al frame
-    cv2.putText(
-        frame,
-        f"Tiempo transcurrido: {elapsed_time_sec}s",
-        (10, 30),
-        cv2.FONT_HERSHEY_SIMPLEX,
-        1,
-        (0, 255, 0),
-        2,
-        cv2.LINE_AA,
-    )
+            # Guarda la imagen en la carpeta de salida
+            cv2.imwrite(image_path, frame)
+            print(f"Foto guardada en: {image_path}")
 
-    # Verifica si han pasado 2 segundos
-    if curent_elapsed_time >= interval:
-        print(elapsed_time)
-        # Guardar la imagen en la carpeta de salida
-        image_name = f"photo_{elapsed_time_sec}.png"
-        image_path = os.path.join(output_folder, image_name)
-        cv2.imwrite(image_path, frame)
-        print(f"Foto guardada en: {image_path}")
-        image_prediction(image_path)
-        upload_image(image_path)  # Envía la imagen al PC
-        os.remove(image_path)  # Elimina la imagen local
-        # Reinicia el temporizador
-        start_time = time.time()
+            # Procesa la imagen y la sube
+            result_path = image_prediction(image_path)
+            upload_image(result_path)
+            os.remove(image_path)
 
-    # Verifica si se ha alcanzado la duración total
-    if elapsed_time >= total_duration:
-        print("Finalizando captura de fotos...")
-        break
+            # Reinicia el temporizador
+            start_time = time.time()
 
-# Libera la cámara
-cap.release()
+    # Libera la cámara
+    cap.release()
+    print("Finalizando captura de fotos...")
+
+
+def main():
+    # Crear una nueva carpeta para cada ejecución
+    execution_folder = datetime.now().strftime("%Y%m%d_%H%M%S")
+    output_folder = os.path.join("data_collection", execution_folder)
+    os.makedirs(output_folder, exist_ok=True)
+
+    # Configura parámetros
+    total_duration = 10
+    interval = 2
+
+    # Captura y procesa imágenes
+    capture_and_process_images(output_folder, total_duration, interval)
+
+
+if __name__ == "__main__":
+    main()
