@@ -38,21 +38,36 @@ def image_prediction(model: YOLO, image_path: str) -> str:
     return result_path
 
 
-def upload_image(  # pylint: disable=w0102
+def upload_image(
     image_path: str, ip_hostname: list[str] = ["192.168.2.14", "ID-DESKTOP.local"]
-) -> None:
+) -> str:
     """
-    Envía la imagen al PC especificado.
+    Envía la imagen al servidor y descarga el resultado en la carpeta 'data_server_results'.
 
     Args:
         image_path (str): Ruta de la imagen a enviar.
-        ip (str): IP del PC receptor.
+    Returns:
+        str: Ruta del archivo procesado descargado.
     """
+    # Crear la carpeta de resultados si no existe
+    result_folder = "data_server_results"
+    os.makedirs(result_folder, exist_ok=True)
+
     url = f"http://{ip_hostname[1]}:8000/"
     with open(image_path, "rb") as f:
         headers = {"X-File-Name": os.path.basename(image_path)}
         response = requests.post(url, headers=headers, data=f, timeout=120)
-        print(f"Upload response: {response.text}")
+
+        # Guardar la imagen procesada en 'data_server_results'
+        result_image_path = os.path.join(
+            result_folder,
+            f"{os.path.basename(image_path).split('.')[0]}_server_result.jpg",
+        )
+        with open(result_image_path, "wb") as result_file:
+            result_file.write(response.content)
+
+    print(f"Processed image downloaded at: {result_image_path}")
+    return result_image_path
 
 
 def capture_and_process_images(
