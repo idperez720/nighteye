@@ -25,14 +25,17 @@ class CustomHandler(http.server.SimpleHTTPRequestHandler):
         file_path = os.path.join(UPLOAD_FOLDER, file_name)
         with open(file_path, "wb") as f:
             f.write(post_data)
-
+        print(file_name)
         # Si es una imagen que necesita ser procesada
         if "result" not in file_name:
             model = init_model()
             result_path = image_prediction(model, file_path)
+            print("++++++++++++++++++++++++++++++++++++++")
+            print(result_path)
 
             # Enviar la imagen procesada de vuelta al cliente
             with open(result_path, "rb") as result_file:
+                print(f"Sending processed image: {result_path}")
                 self.send_response(200)
                 self.send_header("Content-type", "image/jpeg")
                 self.end_headers()

@@ -19,7 +19,7 @@ def init_model() -> YOLO:
     return model
 
 
-def image_prediction(model: YOLO, image_path: str) -> None:
+def image_prediction(model: YOLO, image_path: str) -> str:
     """
     Realiza la predicción en la imagen y guarda el resultado.
 
@@ -32,6 +32,7 @@ def image_prediction(model: YOLO, image_path: str) -> None:
     results = model(image_path)
     result_path = f"{image_path.split('.')[0]}_result.jpg"
     results[0].save(result_path)
+    return result_path
 
 
 def capture_and_process_images(
