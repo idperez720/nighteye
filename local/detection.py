@@ -1,77 +1,89 @@
-""" Script para capturar imágenes y enviar datos al servidor para detección """
+""" Script para capturar imágenes desde la cámara y enviarlas a un PC remoto. """
 
 import os
 import argparse
 import time
 from datetime import datetime
+
 import cv2
 import requests
 from ultralytics import YOLO
-import numpy as np
 
 
 def init_model() -> YOLO:
-    """Inicializa el modelo YOLO.
+    """Inicializa el modelo YOLO y lo exporta a NCNN.
 
     Returns:
-        YOLO: Modelo YOLO inicializado.
+        YOLO: Modelo YOLO exportado a NCNN.
     """
-    model = YOLO("models/yolov8x.pt")
-    return model
+    model = YOLO("models/yolov8n.pt")
+    model.export(format="ncnn")
+    ncnn_model = YOLO("models/yolov8n_ncnn_model")
+    return ncnn_model
 
 
-def extract_features(image: np.ndarray) -> np.ndarray:
-    """Extrae características de la imagen.
+def image_prediction(model: YOLO, image_path: str) -> str:
+    """
+    Realiza la predicción en la imagen y guarda el resultado.
 
     Args:
-        image (np.ndarray): Imagen de entrada.
+        image_path (str): Ruta de la imagen de entrada.
 
     Returns:
-        np.ndarray: Características extraídas.
+        str: Ruta del archivo de resultado.
     """
-    # Aquí debes implementar la extracción de características según tu modelo.
-    # Ejemplo con un modelo ficticio:
-    # features = feature_extractor(image)
-    features = image  # Este es un ejemplo; reemplázalo con la extracción real.
-    return features
+    results = model(image_path)
+    result_path = f"{image_path.split('.')[0]}_result.jpg"
+    results[0].save(result_path)
+    return result_path
 
 
-def upload_features(features: np.ndarray, ip_hostname: str) -> None:
-    """Envía las características al servidor para la detección.
+def upload_image(
+    image_path: str, ip_hostname: list[str] = ["192.168.2.14", "ID-DESKTOP.local"]
+) -> str:
+    """
+    Envía la imagen al servidor y descarga el resultado en la carpeta 'data_server_results'.
 
     Args:
-        features (np.ndarray): Características extraídas.
-        ip_hostname (str): Dirección IP o nombre del servidor.
+        image_path (str): Ruta de la imagen a enviar.
+    Returns:
+        str: Ruta del archivo procesado descargado.
     """
-    url = f"http://{ip_hostname}/detect"
-    _, encoded_img = cv2.imencode(".png", features)
-    response = requests.post(url, files={"file": encoded_img.tobytes()}, timeout=120)
+    # Crear la carpeta de resultados si no existe
+    result_folder = "data_server_results"
+    os.makedirs(result_folder, exist_ok=True)
 
-    if response.status_code == 200:
-        with open("server_detection_result.jpg", "wb") as f:
-            f.write(response.content)
-        print("Resultado de la detección del servidor guardado.")
-    else:
-        print("Error al recibir el resultado de la detección.")
+    url = f"http://{ip_hostname[1]}:8000/"
+    with open(image_path, "rb") as f:
+        headers = {"X-File-Name": os.path.basename(image_path)}
+        response = requests.post(url, headers=headers, data=f, timeout=120)
+
+        # Guardar la imagen procesada en 'data_server_results'
+        result_image_path = os.path.join(
+            result_folder,
+            f"{os.path.basename(image_path).split('.')[0]}_server_result.jpg",
+        )
+        with open(result_image_path, "wb") as result_file:
+            result_file.write(response.content)
+
+    print(f"Processed image downloaded at: {result_image_path}")
+    return result_image_path
 
 
 def capture_and_process_images(
-    model: YOLO,
+    model,
     output_folder: str,
     total_duration: int,
     interval: int,
-    joint_inference: bool,
-    server_ip: str,
+    server_inference: bool,
 ) -> None:
-    """Captura imágenes, extrae características y envía al servidor para detección.
+    """
+    Captura imágenes desde la cámara, las procesa y las envía al PC.
 
     Args:
-        model (YOLO): Modelo YOLO para realizar la predicción.
         output_folder (str): Carpeta donde se guardarán las imágenes.
         total_duration (int): Duración total en segundos para la captura.
         interval (int): Intervalo en segundos entre cada captura de imagen.
-        joint_inference (bool): Indica si se debe realizar inferencia conjunta.
-        server_ip (str): Dirección IP del servidor.
     """
     cap = cv2.VideoCapture(0)
     if not cap.isOpened():
@@ -87,10 +99,12 @@ def capture_and_process_images(
             print("Error: No se puede recibir frame (finalizando...)")
             break
 
+        # Calcula el tiempo transcurrido y el tiempo actual
         current_time = time.time()
         elapsed_time_sec = int(current_time - start_time_total)
         curent_elapsed_time = current_time - start_time
 
+        # Agrega el tiempo transcurrido al frame
         cv2.putText(
             frame,
             f"Tiempo transcurrido: {elapsed_time_sec}s",
@@ -102,65 +116,37 @@ def capture_and_process_images(
             cv2.LINE_AA,
         )
 
+        # Verifica si ha pasado el intervalo
         if curent_elapsed_time >= interval:
+            # Genera un nombre único usando timestamp en milisegundos
             timestamp = int(time.time() * 1000)
             image_name = f"photo_{timestamp}.png"
             image_path = os.path.join(output_folder, image_name)
 
+            # Guarda la imagen en la carpeta de salida
             cv2.imwrite(image_path, frame)
             print(f"Foto guardada en: {image_path}")
 
-            if joint_inference:
-                features = extract_features(frame)
-                upload_features(features, server_ip)
+            # Procesa la imagen y la sube
+            if server_inference:
+                upload_image(image_path)
             else:
                 result_path = image_prediction(model, image_path)
                 upload_image(result_path)
                 os.remove(image_path)
 
+            # Reinicia el temporizador
             start_time = time.time()
 
+    # Libera la cámara
     cap.release()
     print("Finalizando captura de fotos...")
 
 
-def image_prediction(model: YOLO, image_path: str) -> str:
-    """Realiza la predicción en la imagen y guarda el resultado.
-
-    Args:
-        image_path (str): Ruta de la imagen de entrada.
-
-    Returns:
-        str: Ruta del archivo de resultado.
-    """
-    results = model(image_path)
-    result_path = f"{os.path.splitext(image_path)[0]}_result.jpg"
-    results[0].save(result_path)
-    return result_path
-
-
-def upload_image(image_path: str, server_ip: str) -> None:
-    """Envía la imagen al servidor y guarda el resultado.
-
-    Args:
-        image_path (str): Ruta de la imagen a enviar.
-        server_ip (str): Dirección IP del servidor.
-    """
-    url = f"http://{server_ip}/upload"
-    with open(image_path, "rb") as f:
-        headers = {"X-File-Name": os.path.basename(image_path)}
-        response = requests.post(url, headers=headers, data=f, timeout=120)
-        result_image_path = os.path.join(
-            "data_server_results",
-            f"{os.path.basename(image_path).split('.')[0]}_server_result.jpg",
-        )
-        with open(result_image_path, "wb") as result_file:
-            result_file.write(response.content)
-    print(f"Processed image downloaded at: {result_image_path}")
-
-
 def main():
     """Función principal del script."""
+    # Crear una nueva carpeta para cada ejecución
+    # Configuración de argparse para recibir parámetros
     parser = argparse.ArgumentParser(description="Captura y procesa imágenes.")
     parser.add_argument(
         "--total_duration",
@@ -172,33 +158,27 @@ def main():
         "--interval", type=int, default=2, help="Intervalo entre capturas en segundos"
     )
     parser.add_argument(
-        "--server_ip", type=str, required=True, help="Dirección IP del servidor"
-    )
-    parser.add_argument(
-        "--joint_inference",
+        "--server_inference",
         type=bool,
         default=False,
-        help="Realizar inferencia conjunta",
+        help="Realizar inferencia en el servidor",
     )
     args = parser.parse_args()
 
-    if not args.joint_inference:
+    # Crear una nueva carpeta para cada ejecución
+    if not args.server_inference:
         print("Inferencia local")
         model = init_model()
     else:
-        print("Inferencia conjunta")
-
+        print("Inferencia en el servidor")
+        model = None
     execution_folder = datetime.now().strftime("%Y%m%d_%H%M%S")
     output_folder = os.path.join("data_collection", execution_folder)
     os.makedirs(output_folder, exist_ok=True)
 
+    # Captura y procesa imágenes
     capture_and_process_images(
-        model,
-        output_folder,
-        args.total_duration,
-        args.interval,
-        args.joint_inference,
-        args.server_ip,
+        model, output_folder, args.total_duration, args.interval, args.server_inference
     )
 
 

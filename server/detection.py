@@ -1,12 +1,12 @@
-"""Script de detección en el servidor"""
+""" Server detection script """
 
 import os
 import time
+
 import cv2
 from ultralytics import YOLO
 
 SAVE_FOLDER = "C:/Users/ivand/nighteye_server"  # Reemplaza con el directorio de destino
-os.makedirs(SAVE_FOLDER, exist_ok=True)  # Asegura que la carpeta de destino exista
 
 
 def init_model() -> YOLO:
@@ -30,7 +30,7 @@ def image_prediction(model: YOLO, image_path: str) -> str:
         str: Ruta del archivo de resultado.
     """
     results = model(image_path)
-    result_path = f"{os.path.splitext(image_path)[0]}_result.jpg"
+    result_path = f"{image_path.split('.')[0]}_result.jpg"
     results[0].save(result_path)
     return result_path
 
@@ -39,10 +39,9 @@ def capture_and_process_images(
     model: YOLO, output_folder: str, total_duration: int, interval: int
 ) -> None:
     """
-    Captura imágenes desde la cámara, las procesa y las guarda.
+    Captura imágenes desde la cámara, las procesa y las envía al PC.
 
     Args:
-        model (YOLO): Modelo YOLO para realizar la predicción.
         output_folder (str): Carpeta donde se guardarán las imágenes.
         total_duration (int): Duración total en segundos para la captura.
         interval (int): Intervalo en segundos entre cada captura de imagen.
@@ -89,10 +88,9 @@ def capture_and_process_images(
             cv2.imwrite(image_path, frame)
             print(f"Foto guardada en: {image_path}")
 
-            # Procesa la imagen y elimina el archivo original
-            result_path = image_prediction(model, image_path)
+            # Procesa la imagen y la sube
+            image_prediction(model, image_path)
             os.remove(image_path)
-            print(f"Imagen procesada guardada en: {result_path}")
 
             # Reinicia el temporizador
             start_time = time.time()
@@ -105,8 +103,8 @@ def capture_and_process_images(
 def main() -> None:
     """Función principal del script"""
     model = init_model()
-    total_duration = 10  # Duración total de captura en segundos
-    interval = 2  # Intervalo entre capturas en segundos
+    total_duration = 10
+    interval = 2
 
     # Captura y procesa imágenes
     capture_and_process_images(model, SAVE_FOLDER, total_duration, interval)
