@@ -132,7 +132,7 @@ def capture_and_process_images(
                 upload_image(image_path)
             else:
                 result_path = image_prediction(model, image_path)
-                upload_image(result_path)
+                # upload_image(result_path)
                 os.remove(image_path)
 
             # Reinicia el temporizador
@@ -173,7 +173,7 @@ def main():
         print("Inferencia en el servidor")
         model = None
     execution_folder = datetime.now().strftime("%Y%m%d_%H%M%S")
-    output_folder = os.path.join("data_collection", execution_folder)
+    output_folder = os.path.join("data_local_results", execution_folder)
     os.makedirs(output_folder, exist_ok=True)
 
     # Captura y procesa imágenes
