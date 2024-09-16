@@ -7,7 +7,6 @@ from datetime import datetime
 
 import cv2
 import requests
-import numpy as np
 from ultralytics import YOLO
 
 
@@ -21,53 +20,6 @@ def init_model() -> YOLO:
     model.export(format="ncnn")
     ncnn_model = YOLO("models/yolov8n_ncnn_model")
     return ncnn_model
-
-
-def extract_features(image_path: str) -> np.ndarray:
-    """Extrae características de la imagen utilizando un modelo pre-entrenado.
-
-    Args:
-        image_path (str): Ruta de la imagen.
-
-    Returns:
-        np.ndarray: Características extraídas.
-    """
-    # Aquí podrías usar un modelo preentrenado para extraer características.
-    # Por simplicidad, supongamos que se obtiene una representación de la imagen.
-    image = cv2.imread(image_path)
-    resized_image = cv2.resize(image, (640, 640))  # Redimensiona si es necesario
-    features = resized_image.flatten()  # Ejemplo simple de características
-    return features
-
-
-def upload_features(
-    image_path: str, ip_hostname: list[str] = ["192.168.2.14", "ID-DESKTOP.local"]
-) -> dict:
-    """Envía las características de la imagen al servidor y recibe la detección.
-
-    Args:
-        image_path (str): Ruta de la imagen.
-        server_url (str): URL del servidor.
-
-    Returns:
-        dict: Resultado de la detección.
-    """
-
-    url = f"http://{ip_hostname[1]}:8000/"
-    features = extract_features(image_path)
-    features_bytes = features.tobytes()
-
-    response = requests.post(
-        url,
-        files={"file": (os.path.basename(image_path), features_bytes)},
-        timeout=120,
-    )
-
-    if response.status_code == 200:
-        return response.json()
-    else:
-        print(f"Error al enviar características: {response.status_code}")
-        return {}
 
 
 def draw_bounding_boxes(image_path: str, detections: dict) -> None:
@@ -200,8 +152,8 @@ def capture_and_process_images(
             elif type_inference == "server":
                 upload_image(image_path)
             elif type_inference == "joint":
-                detections = upload_features(image_path)
-                draw_bounding_boxes(image_path, detections)
+                # TODO: Implementar inferencia conjunta
+                pass
 
             # Reinicia el temporizador
             start_time = time.time()

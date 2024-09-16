@@ -4,6 +4,7 @@ import os
 import time
 
 import cv2
+import numpy as np
 from ultralytics import YOLO
 
 SAVE_FOLDER = "C:/Users/ivand/nighteye_server"  # Reemplaza con el directorio de destino
@@ -17,6 +18,38 @@ def init_model() -> YOLO:
     """
     model = YOLO("models/yolov8x.pt")
     return model
+
+
+def process_features(features: bytes) -> np.ndarray:
+    """Convierte los bytes de características en un array de numpy.
+
+    Args:
+        features (bytes): Características en bytes.
+
+    Returns:
+        np.ndarray: Características como array de numpy.
+    """
+    return np.frombuffer(features, dtype=np.uint8).reshape(
+        (640, 640, 3)
+    )  # Ajusta según las características
+
+
+def perform_detection(image: np.ndarray, model: YOLO) -> dict:
+    """Realiza la detección en la imagen.
+
+    Args:
+        image (np.ndarray): Imagen en la que realizar la detección.
+        model (YOLO): Modelo YOLO para realizar la detección.
+
+    Returns:
+        dict: Resultados de la detección.
+    """
+    results = model(image)
+    detections = []
+    for result in results:
+        boxes = result.boxes.xyxy.tolist()
+        detections.extend([{"bbox": box} for box in boxes])
+    return {"boxes": detections}
 
 
 def image_prediction(model: YOLO, image_path: str) -> str:
