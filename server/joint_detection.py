@@ -1,26 +1,24 @@
-""" Server detection script """
+""" Script para la detección de objetos en imágenes usando YOLOv8. """
 
 import os
 import time
-
 import cv2
 from ultralytics import YOLO
+from utils.joint_detection import (
+    preprocess_image,
+    predict_with_model,
+    get_bounding_boxes,
+    draw_bounding_boxes,
+    init_model,
+)
 
-SAVE_FOLDER = "C:/Users/ivand/nighteye_server" 
 
+SAVE_FOLDER = "C:/Users/ivand/nighteye_server"  # Reemplaza con el directorio de destino
 
-def init_model() -> YOLO:
-    """Inicializa el modelo YOLO.
-
-    Returns:
-        YOLO: Modelo YOLO inicializado.
-    """
-    model = YOLO("models/yolov8x.pt")
-    return model
 
 def image_prediction(model: YOLO, image_path: str) -> str:
     """
-    Realiza la predicción en la imagen y guarda el resultado.
+    Realiza la predicción en la imagen, dibuja las bounding boxes con etiquetas y porcentajes, y guarda el resultado.
 
     Args:
         image_path (str): Ruta de la imagen de entrada.
@@ -28,9 +26,25 @@ def image_prediction(model: YOLO, image_path: str) -> str:
     Returns:
         str: Ruta del archivo de resultado.
     """
-    results = model(image_path)
+    # Preprocesar la imagen
+    flattened_image, original_shape = preprocess_image(image_path)
+
+    # Realizar la predicción con la imagen preprocesada
+    results = predict_with_model(model, flattened_image, original_shape)
+
+    # Obtener las coordenadas de las bounding boxes, las etiquetas y los porcentajes
+    boxes = get_bounding_boxes(results)
+
+    # Reconstruir la imagen original para dibujar las bounding boxes
+    original_image = cv2.imread(image_path)
+
+    # Dibujar las bounding boxes, etiquetas y porcentajes en la imagen original
+    image_with_boxes = draw_bounding_boxes(original_image, boxes)
+
+    # Guardar el resultado
     result_path = f"{image_path.split('.')[0]}_result.jpg"
-    results[0].save(result_path)
+    cv2.imwrite(result_path, image_with_boxes)
+
     return result_path
 
 

@@ -5,86 +5,9 @@ import argparse
 import time
 from datetime import datetime
 
+
 import cv2
-import requests
-from ultralytics import YOLO
-
-
-def init_model() -> YOLO:
-    """Inicializa el modelo YOLO y lo exporta a NCNN.
-
-    Returns:
-        YOLO: Modelo YOLO exportado a NCNN.
-    """
-    model = YOLO("models/yolov8n.pt")
-    model.export(format="ncnn")
-    ncnn_model = YOLO("models/yolov8n_ncnn_model")
-    return ncnn_model
-
-
-def draw_bounding_boxes(image_path: str, detections: dict) -> None:
-    """Dibuja las Bounding Boxes en la imagen según las detecciones recibidas.
-
-    Args:
-        image_path (str): Ruta de la imagen.
-        detections (dict): Detecciones recibidas del servidor.
-    """
-    image = cv2.imread(image_path)
-    for detection in detections.get("boxes", []):
-        x1, y1, x2, y2 = detection["bbox"]
-        cv2.rectangle(image, (int(x1), int(y1)), (int(x2), int(y2)), (0, 255, 0), 2)
-
-    result_path = image_path
-    cv2.imwrite(result_path, image)
-    print(f"Imagen con Bounding Boxes guardada en: {result_path}")
-
-
-def image_prediction(model: YOLO, image_path: str) -> str:
-    """
-    Realiza la predicción en la imagen y guarda el resultado.
-
-    Args:
-        image_path (str): Ruta de la imagen de entrada.
-
-    Returns:
-        str: Ruta del archivo de resultado.
-    """
-    results = model(image_path)
-    result_path = f"{image_path.split('.')[0]}_result.jpg"
-    results[0].save(result_path)
-    return result_path
-
-
-def upload_image(
-    image_path: str, ip_hostname: list[str] = ["192.168.2.14", "ID-DESKTOP.local"]
-) -> str:
-    """
-    Envía la imagen al servidor y descarga el resultado en la carpeta 'data_server_results'.
-
-    Args:
-        image_path (str): Ruta de la imagen a enviar.
-    Returns:
-        str: Ruta del archivo procesado descargado.
-    """
-    # Crear la carpeta de resultados si no existe
-    result_folder = "data_server_results"
-    os.makedirs(result_folder, exist_ok=True)
-
-    url = f"http://{ip_hostname[1]}:8000/"
-    with open(image_path, "rb") as f:
-        headers = {"X-File-Name": os.path.basename(image_path)}
-        response = requests.post(url, headers=headers, data=f, timeout=120)
-
-        # Guardar la imagen procesada en 'data_server_results'
-        result_image_path = os.path.join(
-            result_folder,
-            f"{os.path.basename(image_path).split('.')[0]}_server_result.jpg",
-        )
-        with open(result_image_path, "wb") as result_file:
-            result_file.write(response.content)
-
-    print(f"Processed image downloaded at: {result_image_path}")
-    return result_image_path
+from utils.local_detection import init_model, image_prediction, upload_image
 
 
 def capture_and_process_images(
@@ -151,6 +74,7 @@ def capture_and_process_images(
                 os.remove(image_path)
             elif type_inference == "server":
                 upload_image(image_path)
+                os.remove(image_path)
             elif type_inference == "joint":
                 # TODO: Implementar inferencia conjunta
                 pass

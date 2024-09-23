@@ -19,6 +19,8 @@ class CustomHandler(http.server.SimpleHTTPRequestHandler):
         """Maneja las peticiones POST"""
         content_length = int(self.headers["Content-Length"])
         post_data = self.rfile.read(content_length)
+        content_type = self.headers.get("Content-type")
+        print(content_type)
 
         # Asumiendo que los archivos son enviados directamente como binarios
         file_name = self.headers.get("X-File-Name", "uploaded_file.png")
