@@ -5,7 +5,7 @@ import socketserver
 import os
 import json
 import numpy as np
-from server.detection import init_model, image_prediction
+from utils.server_detection import init_model, image_prediction
 from utils.joint_detection import (
     predict_with_model,
     get_bounding_boxes,
@@ -49,8 +49,9 @@ class CustomHandler(http.server.SimpleHTTPRequestHandler):
                         "x2": box[2],
                         "y2": box[3],
                         "label": box[4],
-                        "confidence": box[5]
-                    } for box in boxes
+                        "confidence": box[5],
+                    }
+                    for box in boxes
                 ]
             }
 
