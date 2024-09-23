@@ -1,42 +1,20 @@
 """ Server detection script """
 
+from datetime import datetime
 import os
 import time
 
 import cv2
 from ultralytics import YOLO
+from utils.local_detection import upload_image
 
 SAVE_FOLDER = "C:/Users/ivand/nighteye_server"
 
 
-def init_model() -> YOLO:
-    """Inicializa el modelo YOLO.
-
-    Returns:
-        YOLO: Modelo YOLO inicializado.
-    """
-    model = YOLO("models/yolov8x.pt")
-    return model
-
-
-def image_prediction(model: YOLO, image_path: str) -> str:
-    """
-    Realiza la predicción en la imagen y guarda el resultado.
-
-    Args:
-        image_path (str): Ruta de la imagen de entrada.
-
-    Returns:
-        str: Ruta del archivo de resultado.
-    """
-    results = model(image_path)
-    result_path = f"{image_path.split('.')[0]}_result.jpg"
-    results[0].save(result_path)
-    return result_path
-
-
 def capture_and_process_images(
-    model: YOLO, output_folder: str, total_duration: int, interval: int
+    output_folder: str,
+    total_duration: int,
+    interval: int,
 ) -> None:
     """
     Captura imágenes desde la cámara, las procesa y las envía al PC.
@@ -89,7 +67,7 @@ def capture_and_process_images(
             print(f"Foto guardada en: {image_path}")
 
             # Procesa la imagen y la sube
-            image_prediction(model, image_path)
+            upload_image(image_path)
             os.remove(image_path)
 
             # Reinicia el temporizador
@@ -99,12 +77,13 @@ def capture_and_process_images(
     cap.release()
     print("Finalizando captura de fotos...")
 
-
 def main(duracion_total: int = 12, intervalo: int = 3) -> None:
     """Función principal del script"""
-    model = init_model()
     # Captura y procesa imágenes
-    capture_and_process_images(model, SAVE_FOLDER, duracion_total, intervalo)
+    execution_folder = datetime.now().strftime("%Y%m%d_%H%M%S")
+    output_folder = os.path.join("data_local_results", execution_folder)
+    os.makedirs(output_folder, exist_ok=True)
+    capture_and_process_images(output_folder, duracion_total, intervalo)
 
 
 if __name__ == "__main__":

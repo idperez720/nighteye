@@ -41,3 +41,7 @@ def main():
     else:
         print("Tipo de inferencia no válido: local, server, joint")
         return None
+
+
+if __name__ == "__main__":
+    main()
