@@ -3,3 +3,6 @@ models/
 env/
 *.jpg
 *__pycache__/
+# data_local_results/
+# data_server_results/
+# data_collection/
