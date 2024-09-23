@@ -6,7 +6,7 @@ import time
 import cv2
 from ultralytics import YOLO
 
-SAVE_FOLDER = "C:/Users/ivand/nighteye_server" 
+SAVE_FOLDER = "C:/Users/ivand/nighteye_server"
 
 
 def init_model() -> YOLO:
@@ -17,6 +17,7 @@ def init_model() -> YOLO:
     """
     model = YOLO("models/yolov8x.pt")
     return model
+
 
 def image_prediction(model: YOLO, image_path: str) -> str:
     """
@@ -99,14 +100,11 @@ def capture_and_process_images(
     print("Finalizando captura de fotos...")
 
 
-def main() -> None:
+def main(duracion_total: int = 12, intervalo: int = 3) -> None:
     """Función principal del script"""
     model = init_model()
-    total_duration = 10
-    interval = 2
-
     # Captura y procesa imágenes
-    capture_and_process_images(model, SAVE_FOLDER, total_duration, interval)
+    capture_and_process_images(model, SAVE_FOLDER, duracion_total, intervalo)
 
 
 if __name__ == "__main__":

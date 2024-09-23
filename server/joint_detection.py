@@ -4,54 +4,13 @@ from datetime import datetime
 import os
 import time
 import cv2
-from ultralytics import YOLO
 from utils.joint_detection import (
-    preprocess_image,
-    predict_with_model,
-    get_bounding_boxes,
-    draw_bounding_boxes,
-    init_model,
-    upload_image_preprocesed
+    upload_image_preprocesed,
 )
 
 
-SAVE_FOLDER = "C:/Users/ivand/nighteye_server"  # Reemplaza con el directorio de destino
-
-
-def image_prediction(model: YOLO, image_path: str) -> str:
-    """
-    Realiza la predicción en la imagen, dibuja las bounding boxes con etiquetas y porcentajes, y guarda el resultado.
-
-    Args:
-        image_path (str): Ruta de la imagen de entrada.
-
-    Returns:
-        str: Ruta del archivo de resultado.
-    """
-    # Preprocesar la imagen
-    flattened_image, original_shape = preprocess_image(image_path)
-
-    # Realizar la predicción con la imagen preprocesada
-    results = predict_with_model(model, flattened_image, original_shape)
-
-    # Obtener las coordenadas de las bounding boxes, las etiquetas y los porcentajes
-    boxes = get_bounding_boxes(results)
-
-    # Reconstruir la imagen original para dibujar las bounding boxes
-    original_image = cv2.imread(image_path)
-
-    # Dibujar las bounding boxes, etiquetas y porcentajes en la imagen original
-    image_with_boxes = draw_bounding_boxes(original_image, boxes)
-
-    # Guardar el resultado
-    result_path = f"{image_path.split('.')[0]}_result.jpg"
-    cv2.imwrite(result_path, image_with_boxes)
-
-    return result_path
-
-
 def capture_and_process_images(
-    model: YOLO, output_folder: str, total_duration: int, interval: int
+    output_folder: str, total_duration: int, interval: int
 ) -> None:
     """
     Captura imágenes desde la cámara, las procesa y las envía al PC.
@@ -98,15 +57,12 @@ def capture_and_process_images(
             timestamp = int(time.time() * 1000)
             image_name = f"photo_{timestamp}.png"
             image_path = os.path.join(output_folder, image_name)
-            
+
             # Guarda la imagen en la carpeta de salida
             cv2.imwrite(image_path, frame)
             print(f"Foto guardada en: {image_path}")
 
             upload_image_preprocesed(image_path=image_path)
-            # Procesa la imagen y la sube
-            # image_prediction(model, image_path)
-            # os.remove(image_path)
 
             # Reinicia el temporizador
             start_time = time.time()
@@ -116,17 +72,14 @@ def capture_and_process_images(
     print("Finalizando captura de fotos...")
 
 
-def main() -> None:
+def main(duracion_total: int = 12, intervalo: int = 3) -> None:
     """Función principal del script"""
-    model = init_model()
-    total_duration = 10
-    interval = 2
 
     # Captura y procesa imágenes
     execution_folder = datetime.now().strftime("%Y%m%d_%H%M%S")
     output_folder = os.path.join("data_local_results", execution_folder)
     os.makedirs(output_folder, exist_ok=True)
-    capture_and_process_images(model, output_folder, total_duration, interval)
+    capture_and_process_images(output_folder, duracion_total, intervalo)
 
 
 if __name__ == "__main__":

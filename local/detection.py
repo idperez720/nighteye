@@ -1,12 +1,11 @@
 """ Script para capturar imágenes desde la cámara y enviarlas a un PC remoto. """
 
 import os
-import argparse
 import time
 from datetime import datetime
 
 import cv2
-from utils.local_detection import init_model, image_prediction, upload_image
+from utils.local_detection import init_model, image_prediction
 
 
 def capture_and_process_images(
@@ -14,7 +13,6 @@ def capture_and_process_images(
     output_folder: str,
     total_duration: int,
     interval: int,
-    server_inference: bool,
 ) -> None:
     """
     Captura imágenes desde la cámara, las procesa y las envía al PC.
@@ -66,13 +64,8 @@ def capture_and_process_images(
             cv2.imwrite(image_path, frame)
             print(f"Foto guardada en: {image_path}")
 
-            # Procesa la imagen y la sube
-            if server_inference:
-                upload_image(image_path)
-            else:
-                result_path = image_prediction(model, image_path)
-                # upload_image(result_path)
-                os.remove(image_path)
+            result_path = image_prediction(model, image_path)
+            os.remove(image_path)
 
             # Reinicia el temporizador
             start_time = time.time()
@@ -80,45 +73,18 @@ def capture_and_process_images(
     # Libera la cámara
     cap.release()
     print("Finalizando captura de fotos...")
+    return result_path
 
 
-def main():
+def main(duracion_total: int = 12, intervalo: int = 3):
     """Función principal del script."""
-    # Crear una nueva carpeta para cada ejecución
-    # Configuración de argparse para recibir parámetros
-    parser = argparse.ArgumentParser(description="Captura y procesa imágenes.")
-    parser.add_argument(
-        "--total_duration",
-        type=int,
-        default=10,
-        help="Duración total de la captura en segundos",
-    )
-    parser.add_argument(
-        "--interval", type=int, default=2, help="Intervalo entre capturas en segundos"
-    )
-    parser.add_argument(
-        "--server_inference",
-        type=bool,
-        default=False,
-        help="Realizar inferencia en el servidor",
-    )
-    args = parser.parse_args()
-
-    # Crear una nueva carpeta para cada ejecución
-    if not args.server_inference:
-        print("Inferencia local")
-        model = init_model()
-    else:
-        print("Inferencia en el servidor")
-        model = None
+    model = init_model()
     execution_folder = datetime.now().strftime("%Y%m%d_%H%M%S")
     output_folder = os.path.join("data_local_results", execution_folder)
     os.makedirs(output_folder, exist_ok=True)
 
     # Captura y procesa imágenes
-    capture_and_process_images(
-        model, output_folder, args.total_duration, args.interval, args.server_inference
-    )
+    capture_and_process_images(model, output_folder, duracion_total, intervalo)
 
 
 if __name__ == "__main__":
