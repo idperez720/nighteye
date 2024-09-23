@@ -34,7 +34,10 @@ def upload_image(
 
     url = f"http://{ip_hostname[1]}:8000/"
     with open(image_path, "rb") as f:
-        headers = {"X-File-Name": os.path.basename(image_path)}
+        headers = {
+            "X-File-Name": os.path.basename(image_path),
+            "Content-type": "image/jpeg",
+        }
         response = requests.post(url, headers=headers, data=f, timeout=120)
 
         # Guardar la imagen procesada en 'data_server_results'

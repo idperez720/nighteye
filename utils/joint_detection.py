@@ -1,5 +1,7 @@
 """ Modulo de funciones """
 
+import os
+import requests
 import random
 import cv2
 import numpy as np
@@ -57,8 +59,14 @@ def generate_random_color() -> tuple:
 
 def draw_bounding_boxes(image: np.ndarray, boxes: list) -> np.ndarray:
     """Dibuja las bounding boxes, etiquetas y porcentajes en la imagen original."""
-    for x1, y1, x2, y2, label, confidence in boxes:
+    for box in boxes:
         # Genera un color aleatorio para cada bounding box
+        x1 = box["x1"]
+        x2 = box["x2"]
+        y1 = box["y1"]
+        y2 = box["y2"]
+        label = box["label"]
+        confidence = box["confidence"]
         color = generate_random_color()
 
         # Dibuja la caja
@@ -104,3 +112,51 @@ def draw_bounding_boxes(image: np.ndarray, boxes: list) -> np.ndarray:
         )
 
     return image
+
+
+def upload_image_preprocesed(
+    image_path: str, ip_hostname: list[str] = ["192.168.2.14", "ID-DESKTOP.local"]
+) -> str:
+    """
+    Envía la imagen al servidor y descarga el resultado en la carpeta 'data_server_results'.
+
+    Args:
+        image_path (str): Ruta de la imagen a enviar.
+    Returns:
+        str: Ruta del archivo procesado descargado.
+    """
+    # Crear la carpeta de resultados si no existe
+    result_folder = "data_server_results"
+    os.makedirs(result_folder, exist_ok=True)
+
+    url = f"http://{ip_hostname[1]}:8000/"
+    prepro_img, img_shape = preprocess_image(image_path)
+    # Serializamos el array numpy a una lista para enviarlo como JSON
+    prepro_img_serialized = prepro_img.tolist()
+
+    headers = {
+        "Content-type": "application/json",
+        "X-File-Name": os.path.basename(image_path),
+    }
+
+    # Enviamos los datos de la imagen procesada y su shape
+    data = {"image_array": prepro_img_serialized, "shape": img_shape}
+    response = requests.post(url, headers=headers, json=data, timeout=120)
+
+    # TODO: leer las boxes, dibujarlas y luego guardar la imagen
+    if response.status_code == 200:
+        # Decodificar la respuesta JSON
+        response_data = response.json()
+
+        # Extraer las bounding boxes
+        bounding_boxes = response_data.get("bounding_boxes", [])
+        original_image = cv2.imread(image_path)
+        image_procesed = draw_bounding_boxes(original_image, bounding_boxes)
+        result_image_path = os.path.join(
+            result_folder,
+            f"{os.path.basename(image_path).split('.')[0]}_joint_result.jpg",
+        )
+        # with open(result_image_path, "wb") as result_file:
+        cv2.imwrite(result_image_path, image_procesed)
+        print(f"Processed image downloaded at: {result_image_path}")
+        return result_image_path

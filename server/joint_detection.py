@@ -1,5 +1,6 @@
 """ Script para la detección de objetos en imágenes usando YOLOv8. """
 
+from datetime import datetime
 import os
 import time
 import cv2
@@ -10,6 +11,7 @@ from utils.joint_detection import (
     get_bounding_boxes,
     draw_bounding_boxes,
     init_model,
+    upload_image_preprocesed
 )
 
 
@@ -96,14 +98,15 @@ def capture_and_process_images(
             timestamp = int(time.time() * 1000)
             image_name = f"photo_{timestamp}.png"
             image_path = os.path.join(output_folder, image_name)
-
+            
             # Guarda la imagen en la carpeta de salida
             cv2.imwrite(image_path, frame)
             print(f"Foto guardada en: {image_path}")
 
+            upload_image_preprocesed(image_path=image_path)
             # Procesa la imagen y la sube
-            image_prediction(model, image_path)
-            os.remove(image_path)
+            # image_prediction(model, image_path)
+            # os.remove(image_path)
 
             # Reinicia el temporizador
             start_time = time.time()
@@ -120,7 +123,10 @@ def main() -> None:
     interval = 2
 
     # Captura y procesa imágenes
-    capture_and_process_images(model, SAVE_FOLDER, total_duration, interval)
+    execution_folder = datetime.now().strftime("%Y%m%d_%H%M%S")
+    output_folder = os.path.join("data_local_results", execution_folder)
+    os.makedirs(output_folder, exist_ok=True)
+    capture_and_process_images(model, output_folder, total_duration, interval)
 
 
 if __name__ == "__main__":
