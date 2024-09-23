@@ -5,7 +5,6 @@ import os
 import time
 
 import cv2
-from ultralytics import YOLO
 from utils.local_detection import upload_image
 
 SAVE_FOLDER = "C:/Users/ivand/nighteye_server"
@@ -76,6 +75,7 @@ def capture_and_process_images(
     # Libera la cámara
     cap.release()
     print("Finalizando captura de fotos...")
+
 
 def main(duracion_total: int = 12, intervalo: int = 3) -> None:
     """Función principal del script"""
