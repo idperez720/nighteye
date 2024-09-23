@@ -43,7 +43,7 @@ def get_bounding_boxes(results) -> list:
     for box in boxes:
         x1, y1, x2, y2 = box.xyxy[0].tolist()
         label = box.cls[0]  # Obtiene la clase del objeto
-        confidence = box.conf[0]  # Obtiene el porcentaje de confianza
+        confidence = box.conf[0].item()  # Obtiene el porcentaje de confianza
         bounding_boxes.append(
             (int(x1), int(y1), int(x2), int(y2), labels[int(label)], confidence)
         )
