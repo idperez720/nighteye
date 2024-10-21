@@ -10,6 +10,9 @@ def main():
     """Función principal del script."""
     # Crear una nueva carpeta para cada ejecución
     # Configuración de argparse para recibir parámetros
+    # ipMac = 192.168.2.25
+    # ipPC = 192.168.2.14
+
     parser = argparse.ArgumentParser(description="Captura y procesa imágenes.")
     parser.add_argument(
         "--total_duration",
@@ -26,6 +29,12 @@ def main():
         default="local",
         help="Realizar inferencia en el servidor",
     )
+    parser.add_argument(
+        "--server_ip",
+        type=str,
+        default=None,
+        help="Realizar inferencia en el servidor",
+    )
     args = parser.parse_args()
 
     # Crear una nueva carpeta para cada ejecución
@@ -34,10 +43,10 @@ def main():
         local_main(args.total_duration, args.interval)
     elif args.type_inference == "server":
         print("Inferencia en el servidor")
-        server_main(args.total_duration, args.interval)
+        server_main(args.total_duration, args.interval, args.server_ip)
     elif args.type_inference == "joint":
         print("Inferencia en conjunta")
-        joint_detection(args.total_duration, args.interval)
+        joint_detection(args.total_duration, args.interval, args.server_ip)
     else:
         print("Tipo de inferencia no válido: local, server, joint")
         return None

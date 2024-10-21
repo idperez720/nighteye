@@ -17,9 +17,7 @@ def init_model() -> YOLO:
     return ncnn_model
 
 
-def upload_image(
-    image_path: str, ip_hostname: list[str] = ["192.168.2.14", "ID-DESKTOP.local"]
-) -> str:
+def upload_image(image_path: str, server_ip: str = None) -> str:
     """
     Envía la imagen al servidor y descarga el resultado en la carpeta 'data_server_results'.
 
@@ -31,8 +29,10 @@ def upload_image(
     # Crear la carpeta de resultados si no existe
     result_folder = "data_server_results"
     os.makedirs(result_folder, exist_ok=True)
+    if server_ip is None:
+        server_ip = "ID-DESKTOP.local"
 
-    url = f"http://{ip_hostname[1]}:8000/"
+    url = f"http://{server_ip}:8000/"
     with open(image_path, "rb") as f:
         headers = {
             "X-File-Name": os.path.basename(image_path),

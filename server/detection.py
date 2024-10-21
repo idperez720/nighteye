@@ -14,6 +14,7 @@ def capture_and_process_images(
     output_folder: str,
     total_duration: int,
     interval: int,
+    server_ip: str = None
 ) -> None:
     """
     Captura imágenes desde la cámara, las procesa y las envía al PC.
@@ -66,7 +67,7 @@ def capture_and_process_images(
             print(f"Foto guardada en: {image_path}")
 
             # Procesa la imagen y la sube
-            upload_image(image_path)
+            upload_image(image_path, server_ip)
             os.remove(image_path)
 
             # Reinicia el temporizador
@@ -77,13 +78,13 @@ def capture_and_process_images(
     print("Finalizando captura de fotos...")
 
 
-def main(duracion_total: int = 12, intervalo: int = 3) -> None:
+def main(duracion_total: int = 12, intervalo: int = 3, server_ip: str = None) -> None:
     """Función principal del script"""
     # Captura y procesa imágenes
     execution_folder = datetime.now().strftime("%Y%m%d_%H%M%S")
     output_folder = os.path.join("data_local_results", execution_folder)
     os.makedirs(output_folder, exist_ok=True)
-    capture_and_process_images(output_folder, duracion_total, intervalo)
+    capture_and_process_images(output_folder, duracion_total, intervalo, server_ip)
 
 
 if __name__ == "__main__":

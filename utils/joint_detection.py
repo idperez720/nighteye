@@ -114,9 +114,7 @@ def draw_bounding_boxes(image: np.ndarray, boxes: list) -> np.ndarray:
     return image
 
 
-def upload_image_preprocesed(
-    image_path: str, ip_hostname: list[str] = ["192.168.2.14", "ID-DESKTOP.local"]
-) -> str:
+def upload_image_preprocesed(image_path: str, server_ip: str = None) -> str:
     """
     Envía la imagen al servidor y descarga el resultado en la carpeta 'data_server_results'.
 
@@ -129,7 +127,10 @@ def upload_image_preprocesed(
     result_folder = "data_server_results"
     os.makedirs(result_folder, exist_ok=True)
 
-    url = f"http://{ip_hostname[1]}:8000/"
+    if server_ip is None:
+        server_ip = "ID-DESKTOP.local"
+
+    url = f"http://{server_ip}:8000/"
     prepro_img, img_shape = preprocess_image(image_path)
     # Serializamos el array numpy a una lista para enviarlo como JSON
     prepro_img_serialized = prepro_img.tolist()
