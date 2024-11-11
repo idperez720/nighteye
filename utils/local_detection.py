@@ -9,12 +9,10 @@ def init_model() -> YOLO:
     """Inicializa el modelo YOLO y lo exporta a NCNN.
 
     Returns:
-        YOLO: Modelo YOLO exportado a NCNN.
+        YOLO: Modelo YOLO inicializado.
     """
     model = YOLO("models/yolov8n.pt")
-    model.export(format="ncnn")
-    ncnn_model = YOLO("models/yolov8n_ncnn_model")
-    return ncnn_model
+    return model
 
 
 def upload_image(image_path: str, server_ip: str = None) -> str:
