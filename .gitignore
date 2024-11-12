@@ -6,3 +6,4 @@ env/
 data_local_results/
 data_server_results/
 data_collection/
+*.csv
