@@ -1,79 +1,165 @@
+import csv
 import os
 import time
 import cv2
-import psutil
-import csv
 from utils.local_detection import image_prediction, init_model
+from utils.computer_resources import measure_resources_during_prediction
 
 
-def run_detection_tests(
-    num_captures: int = 100,
-    output_folder: str = "./data_local_results/",
-    output_csv: str = "./data_local_results/tests/detection_results.csv",
-) -> None:
-    """This function captures images from the camera, processes them, and saves
-    the data to a CSV file.
+def initialize_camera() -> cv2.VideoCapture:
+    """Initializes the camera for capturing images.
 
-    Args:
-        output_folder (str): Folder where the images will be saved.
-        num_captures (int): Number of images to capture.
-        output_csv (str): Path to the output CSV file.
+    Returns:
+        cv2.VideoCapture: The initialized camera object.
     """
     cap = cv2.VideoCapture(0)
     if not cap.isOpened():
-        print("Error: No se puede abrir la cámara")
+        raise RuntimeError("Error: Unable to open the camera.")
+    return cap
+
+
+def save_image(frame, output_folder: str) -> str:
+    """Saves the captured frame to the specified folder.
+
+    Args:
+        frame: The image frame to save.
+        output_folder (str): Folder where the image will be saved.
+
+    Returns:
+        str: Path to the saved image.
+    """
+    timestamp = int(time.time() * 1000)
+    image_name = f"photo_{timestamp}.png"
+    image_path = os.path.join(output_folder, image_name)
+    cv2.imwrite(image_path, frame)
+    return image_path
+
+
+def capture_and_save_image(cap: cv2.VideoCapture, output_folder: str) -> str:
+    """Captures an image from the camera and saves it to the output folder.
+
+    Args:
+        cap (cv2.VideoCapture): Video capture object.
+        output_folder (str): Folder where the image will be saved.
+
+    Returns:
+        str: Path to the saved image.
+    """
+    ret, frame = cap.read()
+    if not ret:
+        raise RuntimeError("Error: Unable to receive frame (terminating...)")
+    return save_image(frame, output_folder)
+
+
+def store_results(
+    csv_path: str,
+    image_size: int,
+    processing_time: float,
+    cpu_usage: float,
+    memory_usage: float,
+    results_data: dict,
+) -> None:
+    """Stores the collected information in a CSV file.
+
+    Args:
+        csv_path (str): Path to the output CSV file.
+        image_size (int): Size of the image in bytes.
+        processing_time (float): Time taken to process the image.
+        cpu_usage (float): Average CPU usage during processing.
+        memory_usage (float): Average memory usage during processing.
+        results_data (dict): Additional results data from the image prediction.
+    """
+    file_exists = os.path.isfile(csv_path)
+    with open(csv_path, mode="a", newline="", encoding="utf-8") as csv_file:
+        fieldnames = [
+            "image_size",
+            "processing_time",
+            "cpu_usage",
+            "memory_usage",
+            "image_path",
+            "preprocess_time",
+            "inference_time",
+            "postprocess_time",
+            "original_shape",
+            "objects_detected",
+        ]
+        writer = csv.DictWriter(csv_file, fieldnames=fieldnames)
+
+        if not file_exists:
+            writer.writeheader()  # Write the header if the file is new
+
+        writer.writerow(
+            {
+                "image_size": image_size,
+                "processing_time": processing_time,
+                "cpu_usage": cpu_usage,
+                "memory_usage": memory_usage,
+                "image_path": results_data.get("path", ""),
+                "preprocess_time": results_data.get("speed", {}).get("preprocess", 0.0),
+                "inference_time": results_data.get("speed", {}).get("inference", 0.0),
+                "postprocess_time": results_data.get("speed", {}).get(
+                    "postprocess", 0.0
+                ),
+                "original_shape": results_data.get("original_shape", ()),
+                "objects_detected": results_data.get("objects_detected", []),
+            }
+        )
+
+
+def run_detection_tests(
+    num_captures: int = 10,
+    output_folder: str = "./data_local_results/raw_photos",
+    output_csv: str = "./data_local_results/tests/resource_usage.csv",
+) -> None:
+    """Runs detection tests, capturing images, processing them, and logging resource usage.
+
+    Args:
+        num_captures (int): Number of images to capture.
+        output_folder (str): Folder where the images will be saved.
+        output_csv (str): Path to the output CSV file.
+    """
+    # Initialize camera and model
+    try:
+        cap = initialize_camera()
+    except RuntimeError as e:
+        print(e)
         return
 
-    # Inicializa el modelo una vez
     model = init_model()
 
-    # Abre el archivo CSV para escribir los datos
-    with open(output_csv, mode="w", newline="", encoding="utf-8") as file:
-        writer = csv.writer(file)
-        # Escribe los encabezados
-        writer.writerow(["Captura", "CPU_Durante", "Memory_Durante"])
+    for i in range(num_captures):
+        try:
+            image_path = capture_and_save_image(cap, output_folder)
+            image_size = os.path.getsize(image_path)
+        except RuntimeError as e:
+            print(e)
+            continue
 
-        for i in range(num_captures):
-            ret, frame = cap.read()
-            if not ret:
-                print("Error: No se puede recibir frame (finalizando...)")
-                break
-
-            # Guarda la imagen en el disco (opcional, solo para referencia)
-            timestamp = int(time.time() * 1000)
-            image_name = f"photo_{timestamp}.png"
-            image_path = os.path.join(output_folder, image_name)
-            cv2.imwrite(image_path, frame)
-
-            # Mide el uso de recursos durante el procesamiento
-            cpu_usages = []
-            memory_usages = []
-
-            # Inicia la medición del tiempo
-            start_time = time.time()
-
-            # Realiza la inferencia y mide el uso de recursos continuamente
-            while time.time() - start_time < 0.1:  # Intervalo de medición de 100 ms
-                cpu_usages.append(psutil.cpu_percent(interval=0.1))
-                memory_usages.append(psutil.virtual_memory().percent)
-
-            # Realiza la inferencia (puedes ajustar el tiempo de medición según sea necesario)
-            _ = image_prediction(model=model, image_path=image_path)
-
-            # Calcula el promedio de uso de CPU y memoria durante la inferencia
-            avg_cpu_usage = sum(cpu_usages) / len(cpu_usages)
-            avg_memory_usage = sum(memory_usages) / len(memory_usages)
-
-            # Escribe los datos en el archivo CSV
-            writer.writerow([i + 1, avg_cpu_usage, avg_memory_usage])
-
-            # Imprime el log de cada línea escrita
-            print(
-                f"Escribiendo en CSV: Captura {i + 1}, CPU: {avg_cpu_usage:.2f}%, Memoria: {avg_memory_usage:.2f}%"
+        # Measure resource usage during image prediction
+        start_time = time.time()
+        avg_cpu_usage, avg_memory_usage, results_data = (
+            measure_resources_during_prediction(
+                lambda image_path=image_path: image_prediction(
+                    model=model, image_path=image_path
+                )
             )
+        )
+        processing_time = time.time() - start_time
+        # Store the results in the CSV file
+        store_results(
+            output_csv,
+            image_size=image_size,
+            processing_time=processing_time,
+            cpu_usage=avg_cpu_usage,
+            memory_usage=avg_memory_usage,
+            results_data=results_data,
+        )
 
-            # División visual para indicar cambio de imagen
-            print("=" * 50 + f" Fin de captura {i + 1} " + "=" * 50)
+        # Log resource usage
+        print(
+            f"Capture {i + 1}, CPU: {avg_cpu_usage*100:.2f}%, Memory: {avg_memory_usage*100:.2f}%"
+        )
+        print("=" * 50 + f" End of capture {i + 1} " + "=" * 50)
 
     cap.release()
-    print(f"Finalizando prueba de detección... Datos guardados en {output_csv}")
+    print(f"Detection test completed. Data saved to {output_csv}")

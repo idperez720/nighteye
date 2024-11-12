@@ -1,6 +1,7 @@
-""" Módulo con funciones para la detección de objetos en imágenes locales y en servidores remotos. """
+""" This module contains the functions to perform local detection using YOLOv8. """
 
 import os
+from typing import Any, Dict
 import requests
 from ultralytics import YOLO
 
@@ -50,7 +51,7 @@ def upload_image(image_path: str, server_ip: str = None) -> str:
     return result_image_path
 
 
-def image_prediction(model: YOLO, image_path: str) -> str:
+def image_prediction(model: YOLO, image_path: str) -> Dict[str, Any]:
     """
     Realiza la predicción en la imagen y guarda el resultado.
 
@@ -61,6 +62,21 @@ def image_prediction(model: YOLO, image_path: str) -> str:
         str: Ruta del archivo de resultado.
     """
     results = model(image_path)
-    result_path = f"{image_path.split('.')[0]}_result.jpg"
+    speed = results[0].speed
+    original_shape = results[0].orig_shape
+    boxes = results[0].boxes
+    labels = results[0].names
+    objects_detected = []
+    for box in boxes:
+        label = box.cls[0]  # Obtiene la clase del objeto
+        confidence = box.conf[0].item()  # Obtiene el porcentaje de confianza
+        objects_detected.append((labels[int(label)], confidence))
+    result_path = f".{image_path.split('.')[-2]}_result.jpg"
     results[0].save(result_path)
-    return result_path
+    results_data = {
+        "path": result_path,
+        "speed": speed,
+        "original_shape": original_shape,
+        "objects_detected": objects_detected,
+    }
+    return results_data
