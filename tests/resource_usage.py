@@ -107,14 +107,16 @@ def store_results(
 
 
 def run_detection_tests(
-    num_captures: int = 10,
+    duration_minutes: int = 10,
+    capture_interval_seconds: int = 3,
     output_folder: str = "./data_local_results/raw_photos",
     output_csv: str = "./data_local_results/tests/resource_usage.csv",
 ) -> None:
-    """Runs detection tests, capturing images, processing them, and logging resource usage.
+    """Runs detection tests, capturing images at intervals for a set duration and logging resource usage.
 
     Args:
-        num_captures (int): Number of images to capture.
+        duration_minutes (int): Duration to run the test in minutes.
+        capture_interval_seconds (int): Interval between captures in seconds.
         output_folder (str): Folder where the images will be saved.
         output_csv (str): Path to the output CSV file.
     """
@@ -127,16 +129,21 @@ def run_detection_tests(
 
     model = init_model()
 
-    for i in range(num_captures):
+    start_time = time.time()
+    end_time = start_time + duration_minutes * 60
+    photo_count = 0
+
+    while time.time() < end_time:
         try:
             image_path = capture_and_save_image(cap, output_folder)
             image_size = os.path.getsize(image_path)
+            photo_count += 1
         except RuntimeError as e:
             print(e)
             continue
 
         # Measure resource usage during image prediction
-        start_time = time.time()
+        start_processing_time = time.time()
         avg_cpu_usage, avg_memory_usage, results_data = (
             measure_resources_during_prediction(
                 lambda image_path=image_path: image_prediction(
@@ -144,7 +151,8 @@ def run_detection_tests(
                 )
             )
         )
-        processing_time = time.time() - start_time
+        processing_time = time.time() - start_processing_time
+
         # Store the results in the CSV file
         store_results(
             output_csv,
@@ -157,9 +165,14 @@ def run_detection_tests(
 
         # Log resource usage
         print(
-            f"Capture {i + 1}, CPU: {avg_cpu_usage*100:.2f}%, Memory: {avg_memory_usage*100:.2f}%"
+            f"Capture {photo_count} at {time.strftime('%H:%M:%S')}, "
+            f"CPU: {avg_cpu_usage*100:.2f}%, Memory: {avg_memory_usage*100:.2f}%"
         )
-        print("=" * 50 + f" End of capture {i + 1} " + "=" * 50)
+        print("=" * 50)
+
+        # Wait for the next capture
+        time.sleep(capture_interval_seconds)
 
     cap.release()
-    print(f"Detection test completed. Data saved to {output_csv}")
+    print(f"Detection test completed. Total photos taken: {photo_count}")
+    print(f"Data saved to {output_csv}")
