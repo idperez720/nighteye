@@ -4,8 +4,8 @@ from datetime import datetime
 import os
 import time
 import cv2
-from utils.joint_detection import (
-    upload_image_preprocesed,
+from utils.detection import (
+    upload_image_preprocessed,
 )
 
 
@@ -62,7 +62,7 @@ def capture_and_process_images(
             cv2.imwrite(image_path, frame)
             print(f"Foto guardada en: {image_path}")
 
-            upload_image_preprocesed(image_path=image_path, server_ip=server_ip)
+            upload_image_preprocessed(image_path=image_path, server_ip=server_ip)
 
             # Reinicia el temporizador
             start_time = time.time()
@@ -77,7 +77,7 @@ def main(duracion_total: int = 12, intervalo: int = 3, server_ip: str = None) ->
 
     # Captura y procesa imágenes
     execution_folder = datetime.now().strftime("%Y%m%d_%H%M%S")
-    output_folder = os.path.join("data_local_results", execution_folder)
+    output_folder = os.path.join("./data/local/", execution_folder)
     os.makedirs(output_folder, exist_ok=True)
     capture_and_process_images(output_folder, duracion_total, intervalo, server_ip)
 

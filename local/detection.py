@@ -5,7 +5,7 @@ import time
 from datetime import datetime
 
 import cv2
-from utils.local_detection import init_model, image_prediction
+from utils.detection import init_model, image_prediction
 
 
 def capture_and_process_images(
@@ -64,8 +64,8 @@ def capture_and_process_images(
             cv2.imwrite(image_path, frame)
             print(f"Foto guardada en: {image_path}")
 
-            result_path = image_prediction(model, image_path)
-            os.remove(image_path)
+            result_data = image_prediction(model, image_path)
+            os.remove(result_data["path"])
 
             # Reinicia el temporizador
             start_time = time.time()
@@ -73,14 +73,13 @@ def capture_and_process_images(
     # Libera la cámara
     cap.release()
     print("Finalizando captura de fotos...")
-    return result_path
 
 
-def main(duracion_total: int = 12, intervalo: int = 3):
+def main(duracion_total: int = 12, intervalo: int = 3, rpi: bool = True):
     """Función principal del script."""
-    model = init_model()
+    model = init_model(size="n", rpi=rpi)
     execution_folder = datetime.now().strftime("%Y%m%d_%H%M%S")
-    output_folder = os.path.join("data_local_results", execution_folder)
+    output_folder = os.path.join("./data/local/", execution_folder)
     os.makedirs(output_folder, exist_ok=True)
 
     # Captura y procesa imágenes

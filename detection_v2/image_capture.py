@@ -4,8 +4,8 @@ import os
 import time
 import cv2
 from utils.computer_resources import get_system_usage, ping
-from utils.local_detection import upload_image, image_prediction, init_model
-from utils.joint_detection import upload_image_preprocesed
+from utils.local_detection import upload_image
+from utils.detection import upload_image_preprocessed, init_model, image_prediction
 
 
 def capture_and_process_images(
@@ -104,14 +104,14 @@ def perform_inference(cpu_usage, memory_usage, ping_time, image_path, server_ip)
                 upload_image(image_path, server_ip)
             elif ping_time > 500:
                 print("Inferencia conjunta")
-                upload_image_preprocesed(image_path=image_path, server_ip=server_ip)
+                upload_image_preprocessed(image_path=image_path, server_ip=server_ip)
             else:
                 print("Inferencia local")
-                result_path = image_prediction(
-                    model=init_model(), image_path=image_path
+                result_data = image_prediction(
+                    model=init_model(size='n'), image_path=image_path
                 )
-                print(f"Resultado guardado en: {result_path}")
+                print(f"Resultado guardado en: {result_data['path']}")
     else:
-        print("Recursos del sistema muy altos, se recomienda realizar inferencia servidor")
+        print("Uso de recursos del sistema muy altos, se recomienda realizar inferencia servidor")
         upload_image(image_path, server_ip)
     print("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
