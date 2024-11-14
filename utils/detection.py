@@ -156,6 +156,7 @@ def upload_image_preprocessed(
     if response.status_code == 200:
         response_data = response.json()
         bounding_boxes = response_data.get("bounding_boxes", [])
+        result_data = response_data.get("result_data", {})
 
         original_image = cv2.imread(image_path)
         image_processed = draw_bounding_boxes(original_image, bounding_boxes)
@@ -166,6 +167,7 @@ def upload_image_preprocessed(
         cv2.imwrite(result_image_path, image_processed)
 
         print(f"Processed image saved at: {result_image_path}")
-        return result_image_path
+        result_data["path"] = result_image_path
+        return result_data
 
     raise RuntimeError("Error in server response.")

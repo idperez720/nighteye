@@ -5,7 +5,7 @@ for a set duration and logging resource usage.
 import csv
 import os
 import time
-from utils.detection import image_prediction, init_model
+from utils.detection import upload_image_preprocessed
 from utils.computer_resources import measure_resources_during_prediction
 from utils.image_capture import initialize_camera, capture_and_save_image
 
@@ -69,8 +69,8 @@ def run_detection_tests(
     duration_minutes: int = 10,
     capture_interval_seconds: int = 3,
     output_folder: str = "./data/local/",
-    output_csv: str = "./data/tests/resource_usage.csv",
-    rpi: bool = True,
+    output_csv: str = "./data/tests/resource_usage_joint.csv",
+    server_ip: int = "192.168.2.10",
 ) -> None:
     """Runs detection tests, capturing images at intervals for a set duration and logging
     resource usage.
@@ -87,8 +87,6 @@ def run_detection_tests(
     except RuntimeError as e:
         print(e)
         return
-
-    model = init_model(size="n", rpi=rpi)
 
     start_time = time.time()
     end_time = start_time + duration_minutes * 60
@@ -107,11 +105,12 @@ def run_detection_tests(
         start_processing_time = time.time()
         avg_cpu_usage, avg_memory_usage, results_data = (
             measure_resources_during_prediction(
-                lambda image_path=image_path: image_prediction(
-                    model=model, image_path=image_path
+                lambda image_path=image_path: upload_image_preprocessed(
+                    image_path=image_path, server_ip=server_ip
                 )
             )
         )
+        print(results_data)
         processing_time = time.time() - start_processing_time
 
         # Store the results in the CSV file

@@ -42,6 +42,21 @@ class CustomHandler(http.server.SimpleHTTPRequestHandler):
         # Initialize the YOLO model and make predictions
         model = init_model(size="x")
         results = predict_with_flatten_array(model, image_array, shape)
+        speed = results[0].speed
+        original_shape = results[0].orig_shape
+        boxes = results[0].boxes
+        labels = results[0].names
+        objects_detected = []
+        for box in boxes:
+            label = box.cls[0]  # Obtiene la clase del objeto
+            confidence = box.conf[0].item()  # Obtiene el porcentaje de confianza
+            objects_detected.append((labels[int(label)], confidence))
+        results_data = {
+            "speed": speed,
+            "original_shape": original_shape,
+            "objects_detected": objects_detected,
+        }
+
         boxes = get_bounding_boxes(results)
 
         # Prepare the response with bounding box data
@@ -56,7 +71,8 @@ class CustomHandler(http.server.SimpleHTTPRequestHandler):
                     "confidence": box[5],
                 }
                 for box in boxes
-            ]
+            ],
+            "results_data": results_data,
         }
 
         self._send_json_response(response_data)
