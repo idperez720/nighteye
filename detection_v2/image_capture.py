@@ -4,8 +4,7 @@ import os
 import time
 import cv2
 from utils.computer_resources import get_system_usage, ping
-from utils.local_detection import upload_image
-from utils.detection import upload_image_preprocessed, init_model, image_prediction
+from utils.detection import upload_image, upload_image_preprocessed, init_model, image_prediction
 
 
 def capture_and_process_images(

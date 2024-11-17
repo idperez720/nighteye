@@ -69,7 +69,7 @@ def run_detection_tests(
     duration_minutes: int = 10,
     capture_interval_seconds: int = 3,
     output_folder: str = "./data/local/",
-    output_csv: str = "./data/tests/resource_usage.csv",
+    output_csv: str = "./data/tests/",
     rpi: bool = True,
 ) -> None:
     """Runs detection tests, capturing images at intervals for a set duration and logging
@@ -93,6 +93,7 @@ def run_detection_tests(
     start_time = time.time()
     end_time = start_time + duration_minutes * 60
     photo_count = 0
+    timestamp = int(start_time * 1000)
 
     while time.time() < end_time:
         try:
@@ -113,10 +114,9 @@ def run_detection_tests(
             )
         )
         processing_time = time.time() - start_processing_time
-
         # Store the results in the CSV file
         store_results(
-            output_csv,
+            f"{output_csv}.resource_usage_{timestamp}.csv",
             image_size=image_size,
             processing_time=processing_time,
             cpu_usage=avg_cpu_usage,

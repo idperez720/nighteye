@@ -5,9 +5,9 @@ import os
 import time
 
 import cv2
-from utils.local_detection import upload_image
+from utils.detection import upload_image
 
-SAVE_FOLDER = "C:/Users/ivand/nighteye_server"
+SAVE_FOLDER = "./data/server/"
 
 
 def capture_and_process_images(
