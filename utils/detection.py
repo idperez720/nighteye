@@ -14,12 +14,12 @@ def init_model(size: str = "x", rpi: bool = False) -> YOLO:
     """Inicializa y retorna el modelo YOLO."""
     if size == "x":
         print("Using yolov11x model")
-        return YOLO("models/yolov11x.pt")
+        return YOLO("models/yolo11x.pt")
     print("Using yolov11n model")
-    model = YOLO("models/yolov11n.pt")
+    model = YOLO("models/yolo11n.pt")
     if rpi:
         model.export(format="ncnn")
-        return YOLO("models/yolov11n_ncnn_model")
+        return YOLO("models/yolo11n_ncnn_model")
     return model
 
 
