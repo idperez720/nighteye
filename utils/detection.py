@@ -18,6 +18,8 @@ def init_model(size: str = "x", rpi: bool = False) -> YOLO:
     print("Using yolov11n model")
     model = YOLO("models/yolo11n.pt")
     if rpi:
+        if os.path.exists("models/yolo11n_ncnn_model"):
+            return YOLO("models/yolo11n_ncnn_model")
         model.export(format="ncnn")
         return YOLO("models/yolo11n_ncnn_model")
     return model
