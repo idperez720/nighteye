@@ -5,9 +5,8 @@ for a set duration and logging resource usage.
 import csv
 import os
 import time
-from utils.detection import upload_image_preprocessed
+from utils.detection import upload_image
 from utils.computer_resources import measure_resources_during_prediction
-from utils.image_capture import initialize_camera, capture_and_save_image
 
 
 def store_results(
@@ -66,11 +65,10 @@ def store_results(
 
 
 def run_detection_tests(
-    duration_minutes: int = 10,
     capture_interval_seconds: int = 3,
     output_folder: str = "./data/local/",
-    output_csv: str = "./data/tests/resource_usage_joint.csv",
-    server_ip: int = "192.168.2.10",
+    output_csv: str = "./data/tests/",
+    server_ip: str = None,
 ) -> None:
     """Runs detection tests, capturing images at intervals for a set duration and logging
     resource usage.
@@ -82,40 +80,38 @@ def run_detection_tests(
         output_csv (str): Path to the output CSV file.
     """
     # Initialize camera and model
-    try:
-        cap = initialize_camera()
-    except RuntimeError as e:
-        print(e)
-        return
 
     start_time = time.time()
-    end_time = start_time + duration_minutes * 60
     photo_count = 0
+    timestamp = int(start_time * 1000)
 
-    while time.time() < end_time:
-        try:
-            image_path = capture_and_save_image(cap, output_folder)
-            image_size = os.path.getsize(image_path)
-            photo_count += 1
-        except RuntimeError as e:
-            print(e)
-            continue
+    image_extensions = (".jpg", ".jpeg", ".png")
+    photo_paths = [
+        f
+        for f in os.listdir(output_folder)
+        if os.path.isfile(os.path.join(output_folder, f))  # Check if it's a file
+        and f.lower().endswith(image_extensions)  # Check if it's an image
+        and "result" not in f.lower()  # Exclude files with 'result' in their name
+    ]
+
+    for photo in photo_paths:
+        image_path = os.path.join(output_folder, photo)
+        image_size = os.path.getsize(image_path)
+        photo_count += 1
 
         # Measure resource usage during image prediction
         start_processing_time = time.time()
         avg_cpu_usage, avg_memory_usage, results_data = (
             measure_resources_during_prediction(
-                lambda image_path=image_path: upload_image_preprocessed(
+                lambda image_path=image_path: upload_image(
                     image_path=image_path, server_ip=server_ip
                 )
             )
         )
-        print(results_data)
         processing_time = time.time() - start_processing_time
-
         # Store the results in the CSV file
         store_results(
-            output_csv,
+            f"{output_csv}.resource_usage_server_{timestamp}.csv",
             image_size=image_size,
             processing_time=processing_time,
             cpu_usage=avg_cpu_usage,
@@ -133,6 +129,5 @@ def run_detection_tests(
         # Wait for the next capture
         time.sleep(capture_interval_seconds)
 
-    cap.release()
     print(f"Detection test completed. Total photos taken: {photo_count}")
     print(f"Data saved to {output_csv}")

@@ -1,5 +1,6 @@
 """ This module contains the functions to perform the detection of objects in an image. """
 
+import json
 import os
 import random
 from typing import Any, Dict
@@ -175,7 +176,7 @@ def upload_image_preprocessed(
     raise RuntimeError("Error in server response.")
 
 
-def upload_image(image_path: str, server_ip: str = None) -> str:
+def upload_image(image_path: str, server_ip: str = None) -> Dict[str, Any]:
     """
     Envía la imagen al servidor y descarga el resultado en la carpeta './data/server/'.
 
@@ -190,21 +191,28 @@ def upload_image(image_path: str, server_ip: str = None) -> str:
     if server_ip is None:
         server_ip = "192.168.2.10"
 
+    headers = {"Content-Type": "image/jpeg", "X-File-Name": "example.jpg"}
     url = f"http://{server_ip}:8000/"
     with open(image_path, "rb") as f:
-        headers = {
-            "X-File-Name": os.path.basename(image_path),
-            "Content-type": "image/jpeg",
-        }
         response = requests.post(url, headers=headers, data=f, timeout=120)
 
-        # Guardar la imagen procesada en './data/server/'
-        result_image_path = os.path.join(
-            result_folder,
-            f"{os.path.basename(image_path).split('.')[0]}_server_result.jpg",
-        )
-        with open(result_image_path, "wb") as result_file:
-            result_file.write(response.content)
+        if response.status_code == 200:
+            boundary = response.headers["Content-Type"].split("boundary=")[1]
+            parts = response.content.split(f"--{boundary}".encode())
+            json_part = parts[1].split(b"\r\n\r\n")[1]
+            image_part = parts[2].split(b"\r\n\r\n")[1][:-2]
 
-    print(f"Processed image downloaded at: {result_image_path}")
-    return result_image_path
+            # Process JSON
+            result_data = json.loads(json_part)
+            # Save image
+
+            result_image_path = os.path.join(
+                result_folder,
+                f"{os.path.basename(image_path).split('.')[0]}_server_result.jpg",
+            )
+            with open(result_image_path, "wb") as result_file:
+                result_file.write(image_part)
+
+            print(f"Processed image downloaded at: {result_image_path}")
+            return result_data
+        raise RuntimeError("Error in server response.")

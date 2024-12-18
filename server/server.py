@@ -4,6 +4,8 @@ import http.server
 import socketserver
 import os
 import json
+import mimetypes
+from typing import Any, Dict
 import numpy as np
 from utils.detection import init_model, image_prediction
 from utils.detection import predict_with_flatten_array, get_bounding_boxes
@@ -88,9 +90,9 @@ class CustomHandler(http.server.SimpleHTTPRequestHandler):
         if "result" not in file_name:
             model = init_model()
             result_data = image_prediction(model, file_path)
-            result_path = result_data["path"]
-            print(f"Processing image: {result_path}")
-            self._send_image_response(result_path)
+
+            # Send the multipart response with JSON and image
+            self._send_multipart_response(result_data)
         else:
             self.send_response(400)
             self.end_headers()
@@ -101,6 +103,42 @@ class CustomHandler(http.server.SimpleHTTPRequestHandler):
         self.send_header("Content-type", "application/json")
         self.end_headers()
         self.wfile.write(json.dumps(data).encode())
+
+    def _send_multipart_response(self, result_data: Dict[str, Any]):
+        """
+        Sends a multipart response containing JSON data and the processed image.
+        """
+        boundary = "----Boundary1234567890"
+        self.send_response(200)
+        self.send_header("Content-Type", f"multipart/mixed; boundary={boundary}")
+        self.end_headers()
+
+        # Prepare JSON part
+        json_part = json.dumps(result_data).encode()
+        json_headers = f"--{boundary}\r\n" "Content-Type: application/json\r\n\r\n"
+
+        # Prepare image part
+        image_path = result_data["path"]
+        with open(image_path, "rb") as image_file:
+            image_data = image_file.read()
+        image_type = mimetypes.guess_type(image_path)[0] or "application/octet-stream"
+        image_headers = (
+            f"--{boundary}\r\n"
+            f"Content-Type: {image_type}\r\n"
+            f"Content-Disposition: attachment; filename={os.path.basename(image_path)}\r\n\r\n"
+        )
+
+        # Final boundary
+        final_boundary = f"--{boundary}--\r\n"
+
+        # Write all parts to the response
+        self.wfile.write(json_headers.encode())
+        self.wfile.write(json_part)
+        self.wfile.write(b"\r\n")
+        self.wfile.write(image_headers.encode())
+        self.wfile.write(image_data)
+        self.wfile.write(b"\r\n")
+        self.wfile.write(final_boundary.encode())
 
     def _send_image_response(self, image_path):
         """Sends a processed image back to the client"""
