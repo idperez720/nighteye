@@ -67,30 +67,30 @@ def run_detection_tests(
         #     continue
 
         photo_count += 1
-
-        # Choose the function dynamically based on resource usage
-        if use_server_detection and images_with_server_detection < n:
-
-            def processing_function(image_path=image_path):
-                return upload_image(image_path=image_path, server_ip=server_ip)
-
-            images_with_server_detection += 1
-        else:
-
-            def processing_function(image_path=image_path):
-                return image_prediction(model=model, image_path=image_path)
-
-            use_server_detection = False  # Reset after `n` images
-
         # Measure resource usage during prediction
         try:
             start_processing_time = time.time()
-            avg_cpu_usage, avg_memory_usage, results_data = (
-                measure_resources_during_prediction(
-                    processing_function(image_path=image_path)
+            # Choose the function dynamically based on resource usage
+            if use_server_detection and images_with_server_detection < n:
+                avg_cpu_usage, avg_memory_usage, results_data = (
+                    measure_resources_during_prediction(
+                        lambda image_path=image_path: upload_image(
+                            image_path=image_path, server_ip=server_ip
+                        )
+                    )
                 )
-            )
-            processing_time = time.time() - start_processing_time
+                processing_time = time.time() - start_processing_time
+                images_with_server_detection += 1
+            else:
+                avg_cpu_usage, avg_memory_usage, results_data = (
+                    measure_resources_during_prediction(
+                        lambda image_path=image_path: image_prediction(
+                            model=model, image_path=image_path
+                        )
+                    )
+                )
+                processing_time = time.time() - start_processing_time
+                use_server_detection = False  # Reset after `n` images
 
             # Check resource change rate
             if last_cpu_usage is not None and last_memory_usage is not None:
