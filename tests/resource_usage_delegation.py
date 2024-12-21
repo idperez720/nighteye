@@ -47,6 +47,7 @@ def run_detection_tests(
     images_with_server_detection = 0
     last_cpu_usage = None
     last_memory_usage = None
+    detection_place = None
 
     photo_paths = [
         f
@@ -72,6 +73,7 @@ def run_detection_tests(
             start_processing_time = time.time()
             # Choose the function dynamically based on resource usage
             if use_server_detection and images_with_server_detection < n:
+                detection_place = "server"
                 avg_cpu_usage, avg_memory_usage, results_data = (
                     measure_resources_during_prediction(
                         lambda image_path=image_path: upload_image(
@@ -82,6 +84,7 @@ def run_detection_tests(
                 processing_time = time.time() - start_processing_time
                 images_with_server_detection += 1
             else:
+                detection_place = "local"
                 avg_cpu_usage, avg_memory_usage, results_data = (
                     measure_resources_during_prediction(
                         lambda image_path=image_path: image_prediction(
@@ -121,6 +124,7 @@ def run_detection_tests(
                 cpu_usage=avg_cpu_usage,
                 memory_usage=avg_memory_usage,
                 results_data=results_data,
+                detection_place=detection_place,
             )
         except (IOError, RuntimeError) as e:
             print(f"Error during prediction or logging: {e}")

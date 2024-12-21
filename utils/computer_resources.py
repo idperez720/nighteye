@@ -110,6 +110,7 @@ def store_results(
     cpu_usage: float,
     memory_usage: float,
     results_data: dict,
+    detection_place: str,
 ) -> None:
     """Stores the collected information in a CSV file.
 
@@ -133,6 +134,7 @@ def store_results(
             "postprocess_time",
             "original_shape",
             "objects_detected",
+            "detection_place",
         ]
         writer = csv.DictWriter(csv_file, fieldnames=fieldnames)
 
@@ -153,5 +155,6 @@ def store_results(
                 ),
                 "original_shape": results_data.get("original_shape", ()),
                 "objects_detected": results_data.get("objects_detected", []),
+                "detection_place": detection_place,
             }
         )

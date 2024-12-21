@@ -68,6 +68,7 @@ def run_detection_tests(
             cpu_usage=avg_cpu_usage,
             memory_usage=avg_memory_usage,
             results_data=results_data,
+            detection_place="local",
         )
 
         # Log resource usage
