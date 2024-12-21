@@ -3,6 +3,8 @@ This module has functions to read the usage of resources and perform ping operat
 """
 
 import re
+import os
+import csv
 import subprocess
 import threading
 from typing import List, Optional, Tuple
@@ -99,3 +101,57 @@ def measure_resources_during_prediction(
     avg_memory_usage = sum(memory_usages) / len(memory_usages) if memory_usages else 0
 
     return avg_cpu_usage, avg_memory_usage, results_data
+
+
+def store_results(
+    csv_path: str,
+    image_size: int,
+    processing_time: float,
+    cpu_usage: float,
+    memory_usage: float,
+    results_data: dict,
+) -> None:
+    """Stores the collected information in a CSV file.
+
+    Args:
+        csv_path (str): Path to the output CSV file.
+        image_size (int): Size of the image in bytes.
+        processing_time (float): Time taken to process the image.
+        cpu_usage (float): Average CPU usage during processing.
+        memory_usage (float): Average memory usage during processing.
+        results_data (dict): Additional results data from the image prediction.
+    """
+    with open(csv_path, mode="a", newline="", encoding="utf-8") as csv_file:
+        fieldnames = [
+            "image_size",
+            "processing_time",
+            "cpu_usage",
+            "memory_usage",
+            "image_path",
+            "preprocess_time",
+            "inference_time",
+            "postprocess_time",
+            "original_shape",
+            "objects_detected",
+        ]
+        writer = csv.DictWriter(csv_file, fieldnames=fieldnames)
+
+        if not os.path.isfile(csv_path):
+            writer.writeheader()  # Write the header if the file is new
+
+        writer.writerow(
+            {
+                "image_size": image_size,
+                "processing_time": processing_time,
+                "cpu_usage": cpu_usage,
+                "memory_usage": memory_usage,
+                "image_path": results_data.get("path", ""),
+                "preprocess_time": results_data.get("speed", {}).get("preprocess", 0.0),
+                "inference_time": results_data.get("speed", {}).get("inference", 0.0),
+                "postprocess_time": results_data.get("speed", {}).get(
+                    "postprocess", 0.0
+                ),
+                "original_shape": results_data.get("original_shape", ()),
+                "objects_detected": results_data.get("objects_detected", []),
+            }
+        )
