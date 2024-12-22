@@ -14,7 +14,8 @@ def run_detection_tests(
     output_csv: str = "./data/tests/",
     server_ip: str = None,
     # duration_minutes: int = 5,
-    n: int = 5,
+    n: int = 2,
+    rate_threshold: float = 0.2,
 ) -> None:
     """Runs detection tests, capturing images at intervals for a set duration and logging
     resource usage.
@@ -95,16 +96,14 @@ def run_detection_tests(
                 processing_time = time.time() - start_processing_time
                 use_server_detection = False  # Reset after `n` images
 
-            # Check resource change rate
+            # Check positive resource change rate
             if last_cpu_usage is not None and last_memory_usage is not None:
-                cpu_change = abs(avg_cpu_usage - last_cpu_usage) / last_cpu_usage
-                memory_change = (
-                    abs(avg_memory_usage - last_memory_usage) / last_memory_usage
-                )
+                cpu_change = (avg_cpu_usage - last_cpu_usage) / last_cpu_usage
+                memory_change = (avg_memory_usage - last_memory_usage) / last_memory_usage
 
-                if cpu_change > 0.1 or memory_change > 0.1:
+                if cpu_change > rate_threshold or memory_change > rate_threshold:
                     print(
-                        f"Resource change detected! CPU: {cpu_change*100:.2f}%, "
+                        f"Positive resource change detected! CPU: {cpu_change*100:.2f}%, "
                         f"Memory: {memory_change*100:.2f}%. Switching to server detection."
                     )
                     use_server_detection = True
