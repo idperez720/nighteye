@@ -97,11 +97,24 @@ def run_detection_tests(
                 use_server_detection = False  # Reset after `n` images
 
             # Check positive resource change rate
-            if last_cpu_usage is not None and last_memory_usage is not None:
+            if (
+                last_cpu_usage is not None
+                and last_memory_usage is not None
+                and last_cpu_usage > 0
+                and last_memory_usage > 0
+            ):
                 cpu_change = (avg_cpu_usage - last_cpu_usage) / last_cpu_usage
-                memory_change = (avg_memory_usage - last_memory_usage) / last_memory_usage
+                memory_change = (
+                    avg_memory_usage - last_memory_usage
+                ) / last_memory_usage
 
-                if cpu_change > rate_threshold or memory_change > rate_threshold:
+                # Ensure valid positive changes
+                if (
+                    cpu_change > 0
+                    and cpu_change > rate_threshold
+                    or memory_change > 0
+                    and memory_change > rate_threshold
+                ):
                     print(
                         f"Positive resource change detected! CPU: {cpu_change*100:.2f}%, "
                         f"Memory: {memory_change*100:.2f}%. Switching to server detection."
