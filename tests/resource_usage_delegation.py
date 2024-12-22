@@ -100,11 +100,11 @@ def run_detection_tests(
             if last_cpu_usage is not None and last_memory_usage is not None:
                 cpu_change = avg_cpu_usage - last_cpu_usage
                 memory_change = avg_memory_usage - last_memory_usage
+                print(f"CPU change: {cpu_change*100:.2f}%, Memory change: {memory_change*100:.2f}%")
 
                 # Ensure valid positive changes
                 if cpu_change > rate_threshold or memory_change > rate_threshold:
                     print(
-                        (avg_cpu_usage, last_cpu_usage, cpu_change),
                         f"Positive resource change detected! CPU: {cpu_change*100:.2f}%, "
                         f"Memory: {memory_change*100:.2f}%. Switching to server detection.",
                     )
