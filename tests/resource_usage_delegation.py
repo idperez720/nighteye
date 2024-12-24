@@ -15,7 +15,7 @@ def run_detection_tests(
     server_ip: str = None,
     # duration_minutes: int = 5,
     n: int = 2,
-    rate_threshold: float = 0.1,
+    rate_threshold: float = 0.2,
 ) -> None:
     """Runs detection tests, capturing images at intervals for a set duration and logging
     resource usage.
