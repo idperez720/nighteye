@@ -122,7 +122,11 @@ def run_detection_tests(
                 )
 
                 # Ensure valid positive changes
-                if cpu_change > rate_threshold or memory_change > rate_threshold:
+                if (
+                    cpu_change > rate_threshold
+                    and avg_cpu_usage >= 0.4
+                    or memory_change > rate_threshold
+                ):
                     print(
                         f"Positive resource change detected! CPU: {cpu_change*100:.2f}%, "
                         f"Memory: {memory_change*100:.2f}%. Switching to server detection.",
