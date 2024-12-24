@@ -15,7 +15,7 @@ def run_detection_tests(
     server_ip: str = None,
     # duration_minutes: int = 5,
     n: int = 2,
-    rate_threshold: float = 0.2,
+    rate_threshold: float = 0.1,
 ) -> None:
     """Runs detection tests, capturing images at intervals for a set duration and logging
     resource usage.
@@ -47,6 +47,7 @@ def run_detection_tests(
     photo_count = 0
     use_server_detection = False
     images_with_server_detection = 0
+    local_processing_count = 0
     last_cpu_usage = None
     last_memory_usage = None
     detection_place = None
@@ -76,16 +77,29 @@ def run_detection_tests(
             start_processing_time = time.time()
             # Choose the function dynamically based on resource usage
             if use_server_detection and images_with_server_detection < n:
-                detection_place = "server"
-                avg_cpu_usage, avg_memory_usage, results_data = (
-                    measure_resources_during_prediction(
-                        lambda image_path=image_path: upload_image(
-                            image_path=image_path, server_ip=server_ip
+                if local_processing_count >= 2:
+                    detection_place = "server"
+                    avg_cpu_usage, avg_memory_usage, results_data = (
+                        measure_resources_during_prediction(
+                            lambda image_path=image_path: upload_image(
+                                image_path=image_path, server_ip=server_ip
+                            )
                         )
                     )
-                )
-                processing_time = time.time() - start_processing_time
-                images_with_server_detection += 1
+                    processing_time = time.time() - start_processing_time
+                    images_with_server_detection += 1
+                else:
+                    avg_cpu_usage, avg_memory_usage, results_data = (
+                        measure_resources_during_prediction(
+                            lambda image_path=image_path: upload_image(
+                                image_path=image_path, server_ip=server_ip
+                            )
+                        )
+                    )
+                    processing_time = time.time() - start_processing_time
+                    use_server_detection = (
+                        False  # Force local processing if less than 2 local
+                    )
             else:
                 detection_place = "local"
                 avg_cpu_usage, avg_memory_usage, results_data = (
@@ -97,6 +111,7 @@ def run_detection_tests(
                 )
                 processing_time = time.time() - start_processing_time
                 use_server_detection = False  # Reset after `n` images
+                local_processing_count += 1
 
             # Check positive resource change rate
             if last_cpu_usage is not None and last_memory_usage is not None:
