@@ -5,7 +5,7 @@ import time
 from utils.detection import upload_image, image_prediction, init_model
 from utils.computer_resources import measure_resources_during_prediction, store_results
 
-# from utils.image_capture import initialize_camera, capture_and_save_image
+from utils.image_capture import initialize_camera, capture_and_save_image
 
 
 def run_detection_tests(
@@ -31,13 +31,14 @@ def run_detection_tests(
     # Ensure output directories exist
     os.makedirs(output_folder, exist_ok=True)
     os.makedirs(output_csv, exist_ok=True)
+    os.makedirs("./data/local/smoke_capture", exist_ok=True)
 
     # Initialize camera
-    # try:
-    #     cap = initialize_camera()
-    # except RuntimeError as e:
-    #     print(f"Camera initialization failed: {e}")
-    #     return
+    try:
+        cap = initialize_camera()
+    except RuntimeError as e:
+        print(f"Camera initialization failed: {e}")
+        return
 
     model = init_model(size="n", rpi=True)
 
@@ -61,13 +62,14 @@ def run_detection_tests(
     for photo in photo_paths:
         # Capture and save image
         # photo_name = f"photo_{int(time.time() * 1000)}.jpg"
-        image_path = os.path.join(output_folder, photo)
-        # try:
-        #     capture_and_save_image(cap, image_path)
-        # except (IOError, RuntimeError) as e:
-        #     print(f"Failed to capture image: {e}")
-        #     continue
+        image_path = os.path.join("./data/local/smoke_capture/", photo)
+        try:
+            capture_and_save_image(cap, image_path)
+        except (IOError, RuntimeError) as e:
+            print(f"Failed to capture image: {e}")
+            continue
 
+        image_path = os.path.join(output_folder, photo)
         photo_count += 1
         # Measure resource usage during prediction
         try:
@@ -100,7 +102,9 @@ def run_detection_tests(
             if last_cpu_usage is not None and last_memory_usage is not None:
                 cpu_change = avg_cpu_usage - last_cpu_usage
                 memory_change = avg_memory_usage - last_memory_usage
-                print(f"CPU change: {cpu_change*100:.2f}%, Memory change: {memory_change*100:.2f}%")
+                print(
+                    f"CPU change: {cpu_change*100:.2f}%, Memory change: {memory_change*100:.2f}%"
+                )
 
                 # Ensure valid positive changes
                 if cpu_change > rate_threshold or memory_change > rate_threshold:

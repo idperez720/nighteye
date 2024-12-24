@@ -26,6 +26,8 @@ def run_detection_tests(
     # Initialize camera and model
     os.makedirs(output_folder, exist_ok=True)
     os.makedirs(output_csv, exist_ok=True)
+    os.makedirs("./data/local/smoke_capture", exist_ok=True)
+
     try:
         cap = initialize_camera()
     except RuntimeError as e:
@@ -45,7 +47,12 @@ def run_detection_tests(
 
     for photo in photo_paths:
 
-        capture_and_save_image(cap, output_folder)  # emulate image capture
+        image_path = os.path.join("./data/local/smoke_capture/", photo)
+        try:
+            capture_and_save_image(cap, image_path)
+        except (IOError, RuntimeError) as e:
+            print(f"Failed to capture image: {e}")
+            continue
 
         image_path = os.path.join(output_folder, photo)
         photo_count += 1
