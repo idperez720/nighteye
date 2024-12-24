@@ -9,7 +9,7 @@ from utils.image_capture import initialize_camera, capture_and_save_image
 
 
 def run_detection_tests(
-    capture_interval_seconds: int = 3,
+    capture_interval_seconds: int = 0.5,
     output_folder: str = "./data/local/",
     output_csv: str = "./data/tests/",
     server_ip: str = None,
