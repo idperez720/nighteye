@@ -15,6 +15,7 @@ def run_detection_tests(
     output_folder: str = "./data/local/",
     output_csv: str = "./data/tests/",
     rpi: bool = True,
+    image_ext: str = None
 ) -> None:
     """Runs detection tests, capturing images at intervals for a set duration and logging
     resource usage.
@@ -43,7 +44,7 @@ def run_detection_tests(
 
     while time.time() < end_time:
         try:
-            image_path = capture_and_save_image(cap, output_folder)
+            image_path = capture_and_save_image(cap, output_folder, image_ext)
             image_size = os.path.getsize(image_path)
             photo_count += 1
         except RuntimeError as e:

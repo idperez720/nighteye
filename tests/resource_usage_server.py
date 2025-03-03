@@ -14,6 +14,7 @@ def run_detection_tests(
     output_folder: str = "./data/local/",
     output_csv: str = "./data/tests/",
     server_ip: str = None,
+    image_ext: str = None
 ) -> None:
     """Runs detection tests, capturing images at intervals for a set duration and logging
     resource usage.
@@ -49,7 +50,7 @@ def run_detection_tests(
 
         image_path = os.path.join("./data/local/smoke_capture/", photo)
         try:
-            capture_and_save_image(cap, image_path)
+            capture_and_save_image(cap, image_path, image_ext) # Capture and save using desire image format
         except (IOError, RuntimeError) as e:
             print(f"Failed to capture image: {e}")
             continue

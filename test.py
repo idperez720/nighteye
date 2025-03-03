@@ -23,16 +23,22 @@ if __name__ == "__main__":
         default=None,
         help="Realizar inferencia en el servidor",
     )
+    parser.add_argument(
+        "--image_extension",
+        type=str,
+        default=None,
+        help="Extension Imagen",
+    )
     args = parser.parse_args()
 
     if args.type_inference == "local":
         print("Tests local")
-        run_detection_tests()
+        run_detection_tests(image_ext=args.image_extension)
     elif args.type_inference == "server":
         print("Tests en el servidor")
-        run_detection_tests_server(server_ip=args.server_ip)
+        run_detection_tests_server(server_ip=args.server_ip, image_ext=args.image_extension)
     elif args.type_inference == "delegation":
         print("Tests Task Delegation en conjunta")
-        run_detection_tests_delegation(server_ip=args.server_ip)
+        run_detection_tests_delegation(server_ip=args.server_ip, image_ext=args.image_extension)
     else:
         print("Tipo de inferencia no válido: local, server, joint")

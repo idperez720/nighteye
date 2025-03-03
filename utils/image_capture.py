@@ -17,7 +17,7 @@ def initialize_camera() -> cv2.VideoCapture:
     return cap
 
 
-def save_image(frame, output_folder: str) -> str:
+def save_image(frame, output_folder: str, image_extension: str ="jpg") -> str:
     """Saves the captured frame to the specified folder.
 
     Args:
@@ -28,13 +28,13 @@ def save_image(frame, output_folder: str) -> str:
         str: Path to the saved image.
     """
     timestamp = int(time.time() * 1000)
-    image_name = f"photo_{timestamp}.png"
+    image_name = f"photo_{timestamp}.{image_extension}"
     image_path = os.path.join(output_folder, image_name)
     cv2.imwrite(image_path, frame)
     return image_path
 
 
-def capture_and_save_image(cap: cv2.VideoCapture, output_folder: str) -> str:
+def capture_and_save_image(cap: cv2.VideoCapture, output_folder: str, image_extension: str ="jpg") -> str:
     """Captures an image from the camera and saves it to the output folder.
 
     Args:
@@ -47,4 +47,4 @@ def capture_and_save_image(cap: cv2.VideoCapture, output_folder: str) -> str:
     ret, frame = cap.read()
     if not ret:
         raise RuntimeError("Error: Unable to receive frame (terminating...)")
-    return save_image(frame, output_folder)
+    return save_image(frame, output_folder, image_extension)
