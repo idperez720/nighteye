@@ -176,7 +176,7 @@ def upload_image_preprocessed(
     raise RuntimeError("Error in server response.")
 
 
-def upload_image(image_path: str, server_ip: str = None, image_extension: str = "jpg") -> Dict[str, Any]:
+def upload_image(image_path: str, server_ip: str = None, image_extension: str = None) -> Dict[str, Any]:
     """
     Envía la imagen al servidor y descarga el resultado en la carpeta './data/server/'.
 
