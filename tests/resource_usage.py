@@ -56,7 +56,7 @@ def run_detection_tests(
         avg_cpu_usage, avg_memory_usage, results_data = (
             measure_resources_during_prediction(
                 lambda image_path=image_path: image_prediction(
-                    model=model, image_path=image_path
+                    model=model, image_path=image_path, image_extension=image_ext
                 )
             )
         )
