@@ -26,7 +26,7 @@ def init_model(size: str = "x", rpi: bool = False) -> YOLO:
     return model
 
 
-def image_prediction(model: YOLO, image_path: str) -> Dict[str, Any]:
+def image_prediction(model: YOLO, image_path: str, image_extension: str) -> Dict[str, Any]:
     """
     Realiza la predicción en la imagen y guarda el resultado.
 
@@ -46,7 +46,7 @@ def image_prediction(model: YOLO, image_path: str) -> Dict[str, Any]:
         label = box.cls[0]  # Obtiene la clase del objeto
         confidence = box.conf[0].item()  # Obtiene el porcentaje de confianza
         objects_detected.append((labels[int(label)], confidence))
-    result_path = f".{image_path.split('.')[-2]}_result.jpg"
+    result_path = f".{image_path.split('.')[-2]}_result.{image_extension}"
     results[0].save(result_path)
     results_data = {
         "path": result_path,
@@ -176,7 +176,7 @@ def upload_image_preprocessed(
     raise RuntimeError("Error in server response.")
 
 
-def upload_image(image_path: str, server_ip: str = None) -> Dict[str, Any]:
+def upload_image(image_path: str, server_ip: str = None, image_extension: str = "jpg") -> Dict[str, Any]:
     """
     Envía la imagen al servidor y descarga el resultado en la carpeta './data/server/'.
 
@@ -208,7 +208,7 @@ def upload_image(image_path: str, server_ip: str = None) -> Dict[str, Any]:
 
             result_image_path = os.path.join(
                 result_folder,
-                f"{os.path.basename(image_path).split('.')[0]}_server_result.jpg",
+                f"{os.path.basename(image_path).split('.')[0]}_server_result.{image_extension}",
             )
             with open(result_image_path, "wb") as result_file:
                 result_file.write(image_part)
