@@ -15,7 +15,7 @@ def run_detection_tests(
     output_folder: str = "./data/local/",
     output_csv: str = "./data/tests/",
     rpi: bool = True,
-    image_ext: str = None
+    image_ext: str = None,
 ) -> None:
     """Runs detection tests, capturing images at intervals for a set duration and logging
     resource usage.
@@ -75,7 +75,7 @@ def run_detection_tests(
         # Log resource usage
         print(
             f"Capture {photo_count} at {time.strftime('%H:%M:%S')}, "
-            f"CPU: {avg_cpu_usage*100:.2f}%, Memory: {avg_memory_usage*100:.2f}%"
+            f"CPU: {avg_cpu_usage * 100:.2f}%, Memory: {avg_memory_usage * 100:.2f}%"
         )
         print("=" * 50)
 

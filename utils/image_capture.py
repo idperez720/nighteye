@@ -17,7 +17,7 @@ def initialize_camera() -> cv2.VideoCapture:
     return cap
 
 
-def save_image(frame, output_folder: str, image_extension: str ="jpg") -> str:
+def save_image(frame, output_folder: str, image_extension: str) -> str:
     """Saves the captured frame to the specified folder.
 
     Args:
@@ -34,7 +34,7 @@ def save_image(frame, output_folder: str, image_extension: str ="jpg") -> str:
     return image_path
 
 
-def capture_and_save_image(cap: cv2.VideoCapture, output_folder: str, image_extension: str ="jpg") -> str:
+def capture_and_save_image(cap: cv2.VideoCapture, output_folder: str, image_extension: str) -> str:
     """Captures an image from the camera and saves it to the output folder.
 
     Args:

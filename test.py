@@ -33,7 +33,7 @@ if __name__ == "__main__":
 
     if args.type_inference == "local":
         print("Tests local")
-        run_detection_tests(image_ext=args.image_extension)
+        run_detection_tests(image_ext=args.image_extension) 
     elif args.type_inference == "server":
         print("Tests en el servidor")
         run_detection_tests_server(server_ip=args.server_ip, image_ext=args.image_extension)
@@ -42,3 +42,5 @@ if __name__ == "__main__":
         run_detection_tests_delegation(server_ip=args.server_ip, image_ext=args.image_extension)
     else:
         print("Tipo de inferencia no válido: local, server, joint")
+
+
