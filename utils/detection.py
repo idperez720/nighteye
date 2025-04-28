@@ -195,7 +195,7 @@ def upload_image(image_path: str, server_ip: str = None, image_extension: str = 
     url = f"http://{server_ip}:8000/"
     with open(image_path, "rb") as f:
         file_data = f.read()  # <<< Leer TODO el archivo
-        response = requests.post(url, headers=headers, data=f, timeout=120)
+        response = requests.post(url, headers=headers, data=file_data, timeout=120)
 
         if response.status_code == 200:
             boundary = response.headers["Content-Type"].split("boundary=")[1]
