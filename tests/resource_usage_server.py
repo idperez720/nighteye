@@ -42,7 +42,7 @@ def run_detection_tests(
         f
         for f in os.listdir(output_folder)
         if os.path.isfile(os.path.join(output_folder, f))  # Check if it's a file
-        and f.lower().endswith((".jpg", ".jpeg", ".png"))  # Check if it's an image
+        and f.lower().endswith((".jpg", ".jpeg", ".png", ".tiff", ".tif"))  # Check if it's an image
         and "result" not in f.lower()  # Exclude files with 'result' in their name
     ]
 

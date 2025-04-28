@@ -26,11 +26,12 @@ class CustomHandler(http.server.SimpleHTTPRequestHandler):
         content_type = self.headers.get("Content-type")
         file_name = self.headers.get("X-File-Name", "uploaded_file.png")
         file_path = os.path.join(UPLOAD_FOLDER, file_name)
+        _, image_ext = os.path.splitext(file_name)
 
         if content_type == "application/json":
             self._handle_json_request(post_data)
         else:
-            self._handle_file_request(file_path, post_data, file_name)
+            self._handle_file_request(file_path, post_data, file_name, image_ext)
 
     def _handle_json_request(self, post_data):
         """Handles requests with serialized image data in JSON format"""
@@ -79,7 +80,7 @@ class CustomHandler(http.server.SimpleHTTPRequestHandler):
 
         self._send_json_response(response_data)
 
-    def _handle_file_request(self, file_path, post_data, file_name):
+    def _handle_file_request(self, file_path, post_data, file_name, image_ext: str = None):
         """Handles requests with binary files and performs predictions if needed"""
         # Save the received file to the specified path
         with open(file_path, "wb") as file:
@@ -89,7 +90,7 @@ class CustomHandler(http.server.SimpleHTTPRequestHandler):
         # If the file name does not contain 'result', process the image
         if "result" not in file_name:
             model = init_model()
-            result_data = image_prediction(model, file_path)
+            result_data = image_prediction(model, file_path, image_ext)
 
             # Send the multipart response with JSON and image
             self._send_multipart_response(result_data)
