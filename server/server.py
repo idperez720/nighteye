@@ -22,6 +22,36 @@ class CustomHandler(http.server.SimpleHTTPRequestHandler):
     def do_POST(self):
         """Handles POST requests to receive and process files or image data"""
         print(self.headers) ## 
+
+        ##
+        transfer_encoding = self.headers.get("Transfer-Encoding")
+        if transfer_encoding == "chunked":
+            print("Transfer-Encoding: chunked detected, discarding request silently.")
+            try:
+                while True:
+                    chunk_size_str = self.rfile.readline().strip()
+                    if not chunk_size_str:
+                        continue
+                    chunk_size = int(chunk_size_str, 16)
+                    if chunk_size == 0:
+                        break
+                    self.rfile.read(chunk_size)
+                    self.rfile.read(2)  # CRLF
+            except Exception as e:
+                print(f"Error while discarding chunked data: {e}")
+        
+            # RESPONDER NORMAL para que el cliente no note error
+            self.send_response(200)
+            self.end_headers()
+            return
+
+        content_length_header = self.headers.get("Content-Length")
+        if content_length_header is None:
+            print("No Content-Length header. Discarding silently.")
+            self.send_response(200)
+            self.end_headers()
+            return
+        ##
         content_length = int(self.headers["Content-Length"])
         post_data = self.rfile.read(content_length)
         content_type = self.headers.get("Content-type")
