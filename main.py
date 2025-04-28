@@ -53,6 +53,12 @@ def main():
         default=True,
         help="Execution on Raspberry Pi (default: True).",
     )
+    parser.add_argument(
+        "--image_format",
+        type=str,
+        default=None,
+        help="Formato de Imagen",
+    )
     args = parser.parse_args()
 
     # Crear una nueva carpeta para cada ejecución
