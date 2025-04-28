@@ -21,6 +21,7 @@ class CustomHandler(http.server.SimpleHTTPRequestHandler):
 
     def do_POST(self):
         """Handles POST requests to receive and process files or image data"""
+        print(self.headers) ## 
         content_length = int(self.headers["Content-Length"])
         post_data = self.rfile.read(content_length)
         content_type = self.headers.get("Content-type")
