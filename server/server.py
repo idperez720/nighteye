@@ -23,7 +23,7 @@ class CustomHandler(http.server.SimpleHTTPRequestHandler):
         """Handles POST requests to receive and process files or image data"""
         print(self.headers) ## 
 
-        ##
+"""     ##
         transfer_encoding = self.headers.get("Transfer-Encoding")
         if transfer_encoding == "chunked":
             print("Transfer-Encoding: chunked detected, discarding request silently.")
@@ -52,6 +52,9 @@ class CustomHandler(http.server.SimpleHTTPRequestHandler):
             self.end_headers()
             return
         ##
+"""
+
+
         content_length = int(self.headers["Content-Length"])
         post_data = self.rfile.read(content_length)
         content_type = self.headers.get("Content-type")

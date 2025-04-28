@@ -189,11 +189,12 @@ def upload_image(image_path: str, server_ip: str = None, image_extension: str = 
     result_folder = "./data/server/"
     os.makedirs(result_folder, exist_ok=True)
     if server_ip is None:
-        server_ip = "192.168.2.10"
+        server_ip = "172.20.10.10"
 
-    headers = {"Content-Type": "image/jpeg", "X-File-Name": "example.jpg"}
+    headers = {"Content-Type": "image", "X-File-Name": "example.jpg"}
     url = f"http://{server_ip}:8000/"
     with open(image_path, "rb") as f:
+        file_data = f.read()  # <<< Leer TODO el archivo
         response = requests.post(url, headers=headers, data=f, timeout=120)
 
         if response.status_code == 200:
