@@ -17,7 +17,7 @@ def initialize_camera() -> cv2.VideoCapture:
     return cap
 
 
-def save_image(frame, output_folder: str, image_extension: str) -> str:
+'''def save_image(frame, output_folder: str, image_extension: str) -> str:
     """Saves the captured frame to the specified folder.
 
     Args:
@@ -31,6 +31,29 @@ def save_image(frame, output_folder: str, image_extension: str) -> str:
     image_name = f"photo_{timestamp}.{image_extension}"
     image_path = os.path.join(output_folder, image_name)
     cv2.imwrite(image_path, frame)
+    return image_path'''
+
+def save_image(frame, output_folder: str, image_extension: str) -> str:
+    """Saves the captured frame to the specified folder.
+
+    Args:
+        frame: The image frame to save.
+        output_folder (str): Folder where the image will be saved.
+
+    Returns:
+        str: Path to the saved image.
+    """
+    if frame is None or frame.size == 0:
+        raise ValueError("[CLIENT ERROR] Frame vacío o no válido")
+
+    timestamp = int(time.time() * 1000)
+    image_name = f"photo_{timestamp}.{image_extension}"
+    image_path = os.path.join(output_folder, image_name)
+
+    success = cv2.imwrite(image_path, frame)
+    if not success or not os.path.exists(image_path) or os.path.getsize(image_path) == 0:
+        raise ValueError("[CLIENT ERROR] No se pudo guardar la imagen correctamente")
+
     return image_path
 
 
