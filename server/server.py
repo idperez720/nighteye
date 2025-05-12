@@ -120,7 +120,7 @@ class CustomHandler(http.server.SimpleHTTPRequestHandler):
             filename = file_item.filename
             # ahora guardas file_data idéntico a lo que hicimos arriba
         else:     
-           try:
+            try:
                 # Guardar el archivo recibido
                 with open(file_path, "wb") as file:
                     file.write(post_data)  
