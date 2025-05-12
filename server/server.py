@@ -85,7 +85,7 @@ class CustomHandler(http.server.SimpleHTTPRequestHandler):
 
         self._send_json_response(response_data)
 
-    '''def _handle_file_request(self, file_path, post_data, file_name, image_ext: str = None):
+        '''def _handle_file_request(self, file_path, post_data, file_name, image_ext: str = None):
         """Handles requests with binary files and performs predictions if needed"""
         # Save the received file to the specified path
         with open(file_path, "wb") as file:
@@ -102,7 +102,7 @@ class CustomHandler(http.server.SimpleHTTPRequestHandler):
         else:
             self.send_response(400)
             self.end_headers()
-    '''
+        '''
 
     def _handle_file_request(self, file_path, post_data, file_name, image_ext: str = None):
         """Handles requests with binary files and performs predictions if needed"""
@@ -117,7 +117,7 @@ class CustomHandler(http.server.SimpleHTTPRequestHandler):
                 print(f"[ERROR] Archivo recibido vacío o corrupto: {file_path}")
                 self.send_response(400)
                 self.end_headers()
-                self.wfile.write(b"Archivo vacío o no válido.")
+                self.wfile.write(b"Archivo vacio o no valido.")
                 return
 
             # Procesar imagen solo si no es un archivo de resultado
