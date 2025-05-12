@@ -176,7 +176,7 @@ def upload_image_preprocessed(
     raise RuntimeError("Error in server response.")
 
 
-def upload_image(image_path: str, server_ip: str = None, image_extension: str = None) -> Dict[str, Any]:
+'''def upload_image(image_path: str, server_ip: str = None, image_extension: str = None) -> Dict[str, Any]:
     """
     Envía la imagen al servidor y descarga el resultado en la carpeta './data/server/'.
 
@@ -216,4 +216,62 @@ def upload_image(image_path: str, server_ip: str = None, image_extension: str = 
 
             print(f"Processed image downloaded at: {result_image_path}")
             return result_data
+        raise RuntimeError("Error in server response.")'''
+
+def upload_image(image_path: str, server_ip: str = None, image_extension: str = None) -> Dict[str, Any]:
+    """
+    Envía la imagen al servidor y descarga el resultado en la carpeta './data/server/'.
+    """
+    result_folder = "./data/server/"
+    os.makedirs(result_folder, exist_ok=True)
+
+    if server_ip is None:
+        server_ip = "172.20.10.10"
+
+    if not os.path.exists(image_path):
+        raise FileNotFoundError(f"[CLIENT ERROR] Archivo no encontrado: {image_path}")
+
+    file_size = os.path.getsize(image_path)
+    if file_size == 0:
+        raise ValueError(f"[CLIENT ERROR] Archivo vacío: {image_path}")
+
+    print(f"[CLIENT] Enviando '{image_path}' ({file_size} bytes) al servidor...")
+
+    with open(image_path, "rb") as f:
+        file_data = f.read()
+
+    if not file_data:
+        raise ValueError("[CLIENT ERROR] La lectura del archivo resultó en datos vacíos")
+
+    headers = {
+        "Content-Type": "application/octet-stream",
+        "X-File-Name": os.path.basename(image_path)
+    }
+
+    url = f"http://{server_ip}:8000/"
+    response = requests.post(url, headers=headers, data=file_data, timeout=120)
+
+    print(f"[CLIENT] Respuesta del servidor: {response.status_code}")
+
+    if response.status_code == 200:
+        boundary = response.headers["Content-Type"].split("boundary=")[1]
+        parts = response.content.split(f"--{boundary}".encode())
+        json_part = parts[1].split(b"\r\n\r\n")[1]
+        image_part = parts[2].split(b"\r\n\r\n")[1][:-2]
+
+        # Process JSON
+        result_data = json.loads(json_part)
+
+        # Save image
+        result_image_path = os.path.join(
+            result_folder,
+            f"{os.path.basename(image_path).split('.')[0]}_server_result.{image_extension}"
+        )
+        with open(result_image_path, "wb") as result_file:
+            result_file.write(image_part)
+
+        print(f"[CLIENT] Imagen procesada guardada en: {result_image_path}")
+        return result_data
+    else:
+        print(f"[CLIENT ERROR] Respuesta inesperada: {response.status_code} - {response.text}")
         raise RuntimeError("Error in server response.")
