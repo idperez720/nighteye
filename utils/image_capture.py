@@ -77,4 +77,6 @@ def capture_and_save_image(cap: cv2.VideoCapture, output_folder: str, image_exte
     if not ret or frame is None or frame.size == 0:
         raise ValueError("[CLIENT ERROR] Fallo al capturar la imagen desde la cámara")
 
-    return save_image(frame, os.path.dirname(image_path), image_ext)
+    return save_image(frame, output_folder, image_extension)
+    
+    #os.path.dirname(image_path)
