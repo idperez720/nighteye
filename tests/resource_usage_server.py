@@ -54,41 +54,41 @@ def run_detection_tests(
         image_name = f"photo_{timestamp}.{image_ext}"
         image_path = os.path.join(output_folder, image_name)
 
-    try:
-        capture_and_save_image(cap, image_path, image_ext)
-    except (IOError, RuntimeError) as e:
-        print(f"Failed to capture image: {e}")
-        continue
+        try:
+            capture_and_save_image(cap, image_path, image_ext)
+        except (IOError, RuntimeError) as e:
+            print(f"Failed to capture image: {e}")
+            continue
 
-    photo_count += 1
+        photo_count += 1
 
-    try:
-        start_processing_time = time.time()
-        avg_cpu_usage, avg_memory_usage, results_data = measure_resources_during_prediction(
-            lambda: upload_image(image_path=image_path, server_ip=server_ip, image_extension=image_ext)
-        )
-        processing_time = time.time() - start_processing_time
+        try:
+            start_processing_time = time.time()
+            avg_cpu_usage, avg_memory_usage, results_data = measure_resources_during_prediction(
+                lambda: upload_image(image_path=image_path, server_ip=server_ip, image_extension=image_ext)
+            )
+            processing_time = time.time() - start_processing_time
 
-        store_results(
-            f"{output_csv}resource_usage_server_{int(start_time * 1000)}.csv",
-            image_size=os.path.getsize(image_path),
-            processing_time=processing_time,
-            cpu_usage=avg_cpu_usage,
-            memory_usage=avg_memory_usage,
-            results_data=results_data,
-            detection_place="server",
-        )
+            store_results(
+                f"{output_csv}resource_usage_server_{int(start_time * 1000)}.csv",
+                image_size=os.path.getsize(image_path),
+                processing_time=processing_time,
+                cpu_usage=avg_cpu_usage,
+                memory_usage=avg_memory_usage,
+                results_data=results_data,
+                detection_place="server",
+            )
 
-        print(
-            f"Capture {photo_count} at {time.strftime('%H:%M:%S')}, "
-            f"CPU: {avg_cpu_usage*100:.2f}%, Memory: {avg_memory_usage*100:.2f}%"
-        )
-        print("=" * 50)
+            print(
+                f"Capture {photo_count} at {time.strftime('%H:%M:%S')}, "
+                f"CPU: {avg_cpu_usage*100:.2f}%, Memory: {avg_memory_usage*100:.2f}%"
+            )
+            print("=" * 50)
 
-    except Exception as e:
-        print(f"[ERROR] Error procesando imagen: {e}")
+        except Exception as e:
+            print(f"[ERROR] Error procesando imagen: {e}")
 
-    time.sleep(capture_interval_seconds)
+        time.sleep(capture_interval_seconds)
 
 
 
