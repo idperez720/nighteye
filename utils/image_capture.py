@@ -17,7 +17,7 @@ def initialize_camera() -> cv2.VideoCapture:
     return cap
 
 
-'''def save_image(frame, output_folder: str, image_extension: str) -> str:
+def save_image(frame, output_folder: str, image_extension: str) -> str:
     """Saves the captured frame to the specified folder.
 
     Args:
@@ -31,8 +31,9 @@ def initialize_camera() -> cv2.VideoCapture:
     image_name = f"photo_{timestamp}.{image_extension}"
     image_path = os.path.join(output_folder, image_name)
     cv2.imwrite(image_path, frame)
-    return image_path'''
+    return image_path
 
+''' función test PT
 def save_image(frame, output_folder: str, image_extension: str) -> str:
     """Saves the captured frame to the specified folder.
 
@@ -54,7 +55,10 @@ def save_image(frame, output_folder: str, image_extension: str) -> str:
     if not success or not os.path.exists(image_path) or os.path.getsize(image_path) == 0:
         raise ValueError("[CLIENT ERROR] No se pudo guardar la imagen correctamente")
 
-    return image_path
+    return image_path'''
+
+
+
 
 
 def capture_and_save_image(cap: cv2.VideoCapture, output_folder: str, image_extension: str) -> str:
@@ -69,11 +73,12 @@ def capture_and_save_image(cap: cv2.VideoCapture, output_folder: str, image_exte
     """
 
     ret, frame = cap.read()
-    '''if not ret:
+    if not ret:
         raise RuntimeError("Error: Unable to receive frame (terminating...)")
-    return save_image(frame, output_folder, image_extension)'''
+    return save_image(frame, output_folder, image_extension)
 
 
+    '''función test PT
     if not ret or frame is None or frame.size == 0:
         raise ValueError("[CLIENT ERROR] Fallo al capturar la imagen desde la cámara")
 
