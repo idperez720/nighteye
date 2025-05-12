@@ -50,9 +50,9 @@ def run_detection_tests(
 
 
     while True:
-    timestamp = int(time.time() * 1000)
-    image_name = f"photo_{timestamp}.{image_ext or 'png'}"
-    image_path = os.path.join(output_folder, image_name)
+        timestamp = int(time.time() * 1000)
+        image_name = f"photo_{timestamp}.{image_ext}"
+        image_path = os.path.join(output_folder, image_name)
 
     try:
         capture_and_save_image(cap, image_path, image_ext)
