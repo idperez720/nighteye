@@ -139,7 +139,7 @@ def draw_bounding_boxes(image: np.ndarray, boxes: list) -> np.ndarray:
 
 
 def upload_image_preprocessed(
-    image_path: str, server_ip: str = "ID-DESKTOP.local", image_extension: str
+    image_path: str, server_ip: str = "ID-DESKTOP.local", image_extension: str = None
 ) -> str:
     """Envía la imagen preprocesada al servidor y guarda el resultado."""
     result_folder = "./data/server/"
