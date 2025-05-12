@@ -116,7 +116,7 @@ class CustomHandler(http.server.SimpleHTTPRequestHandler):
                 environ={"REQUEST_METHOD":"POST"}
             )
             file_item = fs["file"]  # depende del nombre de campo
-         file_data = file_item.file.read()
+            file_data = file_item.file.read()
             filename = file_item.filename
             # ahora guardas file_data idéntico a lo que hicimos arriba
         else:     
