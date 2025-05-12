@@ -139,7 +139,7 @@ def draw_bounding_boxes(image: np.ndarray, boxes: list) -> np.ndarray:
 
 
 def upload_image_preprocessed(
-    image_path: str, server_ip: str = "ID-DESKTOP.local"
+    image_path: str, server_ip: str = "ID-DESKTOP.local", image_extension: str
 ) -> str:
     """Envía la imagen preprocesada al servidor y guarda el resultado."""
     result_folder = "./data/server/"
@@ -165,8 +165,9 @@ def upload_image_preprocessed(
         image_processed = draw_bounding_boxes(original_image, bounding_boxes)
         result_image_path = os.path.join(
             result_folder,
-            f"{os.path.splitext(os.path.basename(image_path))[0]}_result.jpg",
+            f"{os.path.splitext(os.path.basename(image_path))[0]}_result.{image_extension}",
         )
+
         cv2.imwrite(result_image_path, image_processed)
 
         print(f"Processed image saved at: {result_image_path}")
