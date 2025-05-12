@@ -23,36 +23,7 @@ class CustomHandler(http.server.SimpleHTTPRequestHandler):
         """Handles POST requests to receive and process files or image data"""
         print(self.headers) ## 
 
-        """     ##
-        transfer_encoding = self.headers.get("Transfer-Encoding")
-        if transfer_encoding == "chunked":
-            print("Transfer-Encoding: chunked detected, discarding request silently.")
-            try:
-                while True:
-                    chunk_size_str = self.rfile.readline().strip()
-                    if not chunk_size_str:
-                        continue
-                    chunk_size = int(chunk_size_str, 16)
-                    if chunk_size == 0:
-                        break
-                    self.rfile.read(chunk_size)
-                    self.rfile.read(2)  # CRLF
-            except Exception as e:
-                print(f"Error while discarding chunked data: {e}")
-        
-            # RESPONDER NORMAL para que el cliente no note error
-            self.send_response(200)
-            self.end_headers()
-            return
 
-        content_length_header = self.headers.get("Content-Length")
-        if content_length_header is None:
-            print("No Content-Length header. Discarding silently.")
-            self.send_response(200)
-            self.end_headers()
-            return
-        ##
-        """
 
 
         content_length = int(self.headers["Content-Length"])
@@ -114,7 +85,7 @@ class CustomHandler(http.server.SimpleHTTPRequestHandler):
 
         self._send_json_response(response_data)
 
-    def _handle_file_request(self, file_path, post_data, file_name, image_ext: str = None):
+    '''def _handle_file_request(self, file_path, post_data, file_name, image_ext: str = None):
         """Handles requests with binary files and performs predictions if needed"""
         # Save the received file to the specified path
         with open(file_path, "wb") as file:
@@ -131,6 +102,58 @@ class CustomHandler(http.server.SimpleHTTPRequestHandler):
         else:
             self.send_response(400)
             self.end_headers()
+    '''
+
+    def _handle_file_request(self, file_path, post_data, file_name, image_ext: str = None):
+        """Handles requests with binary files and performs predictions if needed"""
+        try:
+            # Guardar el archivo recibido
+            with open(file_path, "wb") as file:
+                file.write(post_data)  
+            print(f"File received: {file_name}")
+
+            # Verificar que el archivo exista y no esté vacío
+            if not os.path.exists(file_path) or os.path.getsize(file_path) == 0:
+                print(f"[ERROR] Archivo recibido vacío o corrupto: {file_path}")
+                self.send_response(400)
+                self.end_headers()
+                self.wfile.write(b"Archivo vacío o no válido.")
+                return
+
+            # Procesar imagen solo si no es un archivo de resultado
+            if "result" not in file_name:
+                try:
+                    model = init_model()
+                    result_data = image_prediction(model, file_path, image_ext)
+                    self._send_multipart_response(result_data)
+                except Exception as e:
+                    print(f"[ERROR] Fallo en image_prediction: {e}")
+                    self.send_response(500)
+                    self.end_headers()
+                    self.wfile.write(f"Error procesando imagen: {str(e)}".encode())
+            else:
+                self.send_response(400)
+                self.end_headers()
+                self.wfile.write(b"Nombre de archivo no permitido para procesamiento.")
+        except Exception as e:
+            print(f"[ERROR] Error general en _handle_file_request: {e}")
+            self.send_response(500)
+            self.end_headers()
+            self.wfile.write(f"Error interno del servidor: {str(e)}".encode())
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
     def _send_json_response(self, data):
         """Sends a JSON response back to the client"""
