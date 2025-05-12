@@ -84,4 +84,4 @@ def capture_and_save_image(cap: cv2.VideoCapture, output_folder: str, image_exte
 
     return save_image(frame, output_folder, image_extension)
     
-    #os.path.dirname(image_path)
+    #os.path.dirname(image_path)'''
