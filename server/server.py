@@ -5,6 +5,7 @@ import socketserver
 import os
 import json
 import mimetypes
+import cgi
 from typing import Any, Dict
 import numpy as np
 from utils.detection import init_model, image_prediction
@@ -106,40 +107,53 @@ class CustomHandler(http.server.SimpleHTTPRequestHandler):
 
     def _handle_file_request(self, file_path, post_data, file_name, image_ext: str = None):
         """Handles requests with binary files and performs predictions if needed"""
-        try:
-            # Guardar el archivo recibido
-            with open(file_path, "wb") as file:
-                file.write(post_data)  
-            print(f"File received: {file_name}")
+        # parsear multipart
+        content_type = self.headers.get("Content-Type")
+        if content_type and "multipart/form-data" in content_type:
+            fs = cgi.FieldStorage(
+                fp=self.rfile,
+                headers=self.headers,
+                environ={"REQUEST_METHOD":"POST"}
+            )
+            file_item = fs["file"]  # depende del nombre de campo
+         file_data = file_item.file.read()
+            filename = file_item.filename
+            # ahora guardas file_data idéntico a lo que hicimos arriba
+        else:     
+           try:
+                # Guardar el archivo recibido
+                with open(file_path, "wb") as file:
+                    file.write(post_data)  
+                print(f"File received: {file_name}")
 
-            # Verificar que el archivo exista y no esté vacío
-            if not os.path.exists(file_path) or os.path.getsize(file_path) == 0:
-                print(f"[ERROR] Archivo recibido vacío o corrupto: {file_path}")
-                self.send_response(400)
-                self.end_headers()
-                self.wfile.write(b"Archivo vacio o no valido.")
-                return
-
-            # Procesar imagen solo si no es un archivo de resultado
-            if "result" not in file_name:
-                try:
-                    model = init_model()
-                    result_data = image_prediction(model, file_path, image_ext)
-                    self._send_multipart_response(result_data)
-                except Exception as e:
-                    print(f"[ERROR] Fallo en image_prediction: {e}")
-                    self.send_response(500)
+                # Verificar que el archivo exista y no esté vacío
+                if not os.path.exists(file_path) or os.path.getsize(file_path) == 0:
+                    print(f"[ERROR] Archivo recibido vacío o corrupto: {file_path}")
+                    self.send_response(400)
                     self.end_headers()
-                    self.wfile.write(f"Error procesando imagen: {str(e)}".encode())
-            else:
-                self.send_response(400)
+                    self.wfile.write(b"Archivo vacio o no valido.")
+                    return
+
+                # Procesar imagen solo si no es un archivo de resultado
+                if "result" not in file_name:
+                    try:
+                        model = init_model()
+                        result_data = image_prediction(model, file_path, image_ext)
+                        self._send_multipart_response(result_data)
+                    except Exception as e:
+                        print(f"[ERROR] Fallo en image_prediction: {e}")
+                        self.send_response(500)
+                        self.end_headers()
+                        self.wfile.write(f"Error procesando imagen: {str(e)}".encode())
+                else:
+                    self.send_response(400)
+                    self.end_headers()
+                    self.wfile.write(b"Nombre de archivo no permitido para procesamiento.")
+            except Exception as e:
+                print(f"[ERROR] Error general en _handle_file_request: {e}")
+                self.send_response(500)
                 self.end_headers()
-                self.wfile.write(b"Nombre de archivo no permitido para procesamiento.")
-        except Exception as e:
-            print(f"[ERROR] Error general en _handle_file_request: {e}")
-            self.send_response(500)
-            self.end_headers()
-            self.wfile.write(f"Error interno del servidor: {str(e)}".encode())
+                self.wfile.write(f"Error interno del servidor: {str(e)}".encode())
 
 
 
