@@ -169,7 +169,7 @@ from utils.image_capture import initialize_camera, capture_and_save_image
 
 
 
-def run_detection_tests2(
+def run_detection_tests(
     capture_interval_seconds: float = 0.5,
     output_folder: str = "./data/local/",
     output_csv: str = "./data/tests/",
