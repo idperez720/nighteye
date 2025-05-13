@@ -211,13 +211,13 @@ def run_detection_tests(
             if use_server_detection and images_with_server_detection < n:
                 detection_place = "server"
                 avg_cpu_usage, avg_memory_usage, results_data = measure_resources_during_prediction(
-                    lambda image_path=image_path: upload_image(image_path=image_path, server_ip=server_ip)
+                    lambda image_path=image_path: upload_image(image_path=image_path, server_ip=server_ip, image_extension=image_ext)
                 )
                 images_with_server_detection += 1
             else:
                 detection_place = "local"
                 avg_cpu_usage, avg_memory_usage, results_data = measure_resources_during_prediction(
-                    lambda image_path=image_path: image_prediction(model=model, image_path=image_path)
+                    lambda image_path=image_path: image_prediction(model=model, image_path=image_path, image_extension=image_ext)
                 )
                 use_server_detection = False
                 local_processing_count += 1
