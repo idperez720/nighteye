@@ -199,6 +199,9 @@ def run_detection_tests(
     last_cpu_usage = None
     last_memory_usage = None
 
+    # CSV único para toda la sesión
+    csv_path = os.path.join(output_csv, f"resource_usage_delegation_{int(start_time * 1000)}.csv")
+
     while True:
         try:
             # Captura y guarda imagen
@@ -241,8 +244,17 @@ def run_detection_tests(
             last_memory_usage = avg_memory_usage
 
             # Guardado de resultados
-            store_results(
+            '''store_results(
                 os.path.join(output_csv, f"resource_usage_{int(start_time * 1000)}.csv"),
+                image_size=os.path.getsize(image_path),
+                processing_time=processing_time,
+                cpu_usage=avg_cpu_usage,
+                memory_usage=avg_memory_usage,
+                results_data=results_data,
+                detection_place=detection_place,
+            )'''
+            store_results(
+                csv_path,
                 image_size=os.path.getsize(image_path),
                 processing_time=processing_time,
                 cpu_usage=avg_cpu_usage,
