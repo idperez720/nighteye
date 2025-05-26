@@ -170,7 +170,7 @@ from utils.image_capture import initialize_camera, capture_and_save_image
 
 
 def run_detection_tests(
-    capture_interval_seconds: float = 0.5,
+    capture_interval_seconds: float = 2,
     output_folder: str = "./data/local/",
     output_csv: str = "./data/tests/",
     server_ip: str = None,
@@ -273,7 +273,7 @@ def run_detection_tests(
                     contador_aumentos += 1
                 else:
                     contador_aumentos = 0
-                    
+
                 
                 if memory_change > rate_threshold or contador_aumentos == 4:
                     print(
