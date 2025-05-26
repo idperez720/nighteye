@@ -176,7 +176,7 @@ def run_detection_tests(
     server_ip: str = None,
     image_ext: str = "jpg",
     n: int = 2,
-    rate_threshold: float = 0.1,
+    rate_threshold: float = 0.016,
 ) -> None:
     """Runs detection tests with optional server-based inference based on system resource usage."""
 
@@ -199,6 +199,10 @@ def run_detection_tests(
     last_cpu_usage = None
     last_memory_usage = None
 
+    contador_aumentos = 0
+    ultimo_valor = None
+    
+
     # CSV único para toda la sesión
     csv_path = os.path.join(output_csv, f"resource_usage_delegation_{int(start_time * 1000)}.csv")
 
@@ -213,35 +217,93 @@ def run_detection_tests(
 
             if use_server_detection and images_with_server_detection < n:
                 detection_place = "server"
-                avg_cpu_usage, avg_memory_usage, results_data = measure_resources_during_prediction(
+                avg_cpu_usage, avg_memory_usage, results_data, current_memory = measure_resources_during_prediction(
                     lambda image_path=image_path: upload_image(image_path=image_path, server_ip=server_ip, image_extension=image_ext)
                 )
                 images_with_server_detection += 1
             else:
                 detection_place = "local"
-                avg_cpu_usage, avg_memory_usage, results_data = measure_resources_during_prediction(
+                avg_cpu_usage, avg_memory_usage, results_data, current_memory = measure_resources_during_prediction(
                     lambda image_path=image_path: image_prediction(model=model, image_path=image_path, image_extension=image_ext)
                 )
                 use_server_detection = False
                 local_processing_count += 1
+                images_with_server_detection = 0
 
             processing_time = time.time() - start_processing_time
 
-            # Evaluación de uso de recursos
+
+
+            '''# Evaluación de uso de recursos
             if last_cpu_usage is not None and last_memory_usage is not None:
                 cpu_change = avg_cpu_usage - last_cpu_usage
                 memory_change = avg_memory_usage - last_memory_usage
 
-                if (cpu_change > rate_threshold and avg_cpu_usage >= 0.5) or memory_change > rate_threshold:
+
+                """if (cpu_change > rate_threshold and avg_cpu_usage >= 0.5) or memory_change > rate_threshold:
                     print(
                         f"Positive resource change detected! CPU: {cpu_change*100:.2f}%, "
+                        f"Memory: {memory_change*100:.2f}%. Switching to server detection."
+                    )
+                    use_server_detection = True
+                    images_with_server_detection = 0"""
+                
+                if memory_change > rate_threshold:
+                    print(
                         f"Memory: {memory_change*100:.2f}%. Switching to server detection."
                     )
                     use_server_detection = True
                     images_with_server_detection = 0
 
             last_cpu_usage = avg_cpu_usage
+            last_memory_usage = avg_memory_usage'''
+
+
+
+
+
+
+
+            # Evaluación de uso de recursos
+            if last_cpu_usage is not None and last_memory_usage is not None and ultimo_valor is not None:
+                cpu_change = avg_cpu_usage - last_cpu_usage
+                memory_change = avg_memory_usage - last_memory_usage
+               
+                if current_memory > ultimo_valor:
+                    contador_aumentos += 1
+                else:
+                    contador_aumentos = 0
+                    
+                
+                if memory_change > rate_threshold or contador_aumentos == 4:
+                    print(
+                        f"Memory: {memory_change*100:.2f}%. Switching to server detection."
+                    )
+                    use_server_detection = True
+                    images_with_server_detection = 0
+                    contador_aumentos = 0
+
+            last_cpu_usage = avg_cpu_usage
             last_memory_usage = avg_memory_usage
+            ultimo_valor = current_memory
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
             # Guardado de resultados
             '''store_results(

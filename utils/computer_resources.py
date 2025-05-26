@@ -100,7 +100,7 @@ def measure_resources_during_prediction(
     avg_cpu_usage = sum(cpu_usages) / len(cpu_usages) if cpu_usages else 0
     avg_memory_usage = sum(memory_usages) / len(memory_usages) if memory_usages else 0
 
-    return avg_cpu_usage, avg_memory_usage, results_data
+    return avg_cpu_usage, avg_memory_usage, results_data, memory_usage
 
 
 def store_results(

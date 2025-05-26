@@ -53,7 +53,7 @@ def run_detection_tests(
 
         # Measure resource usage during image prediction
         start_processing_time = time.time()
-        avg_cpu_usage, avg_memory_usage, results_data = (
+        avg_cpu_usage, avg_memory_usage, results_data, memory_usage = (
             measure_resources_during_prediction(
                 lambda image_path=image_path: image_prediction(
                     model=model, image_path=image_path, image_extension=image_ext

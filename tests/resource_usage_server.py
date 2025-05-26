@@ -192,7 +192,7 @@ def run_detection_tests(
 
             # Medir recursos durante la predicción
             start_processing_time = time.time()
-            avg_cpu_usage, avg_memory_usage, results_data = measure_resources_during_prediction(
+            avg_cpu_usage, avg_memory_usage, results_data, memory_usage = measure_resources_during_prediction(
                 lambda image_path=image_path: upload_image(
                     image_path=image_path,
                     server_ip=server_ip,
