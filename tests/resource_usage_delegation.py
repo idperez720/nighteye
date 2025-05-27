@@ -176,7 +176,7 @@ def run_detection_tests(
     server_ip: str = None,
     image_ext: str = "jpg",
     n: int = 2,
-    rate_threshold: float = 0.012,
+    rate_threshold: float = 0.014,
 ) -> None:
     """Runs detection tests with optional server-based inference based on system resource usage."""
 
