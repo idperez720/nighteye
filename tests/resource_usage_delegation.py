@@ -336,3 +336,4 @@ def run_detection_tests(
         except (IOError, RuntimeError) as e:
             print(f"[ERROR] Error durante procesamiento: {e}")
             continue
+        

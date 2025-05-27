@@ -77,6 +77,7 @@ def measure_resources_during_prediction(
     cpu_usages: List[float] = []
     memory_usages: List[float] = []
     stop_event = threading.Event()
+    current_memory = 0
 
     # Function to measure system usage in a separate thread
     def measure():
@@ -84,6 +85,7 @@ def measure_resources_during_prediction(
             cpu_usage, memory_usage = get_system_usage(interval=0.1)
             cpu_usages.append(cpu_usage)
             memory_usages.append(memory_usage)
+            current_memory = memory_usage
 
     # Start measuring in a separate thread
     resource_thread = threading.Thread(target=measure)
@@ -100,7 +102,7 @@ def measure_resources_during_prediction(
     avg_cpu_usage = sum(cpu_usages) / len(cpu_usages) if cpu_usages else 0
     avg_memory_usage = sum(memory_usages) / len(memory_usages) if memory_usages else 0
 
-    return avg_cpu_usage, avg_memory_usage, results_data, memory_usage
+    return avg_cpu_usage, avg_memory_usage, results_data, current_memory
 
 
 def store_results(
