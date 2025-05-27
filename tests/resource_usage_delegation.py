@@ -176,7 +176,7 @@ def run_detection_tests(
     server_ip: str = None,
     image_ext: str = "jpg",
     n: int = 2,
-    rate_threshold: float = 0.016,
+    rate_threshold: float = 0.01,
 ) -> None:
     """Runs detection tests with optional server-based inference based on system resource usage."""
 
@@ -336,4 +336,3 @@ def run_detection_tests(
         except (IOError, RuntimeError) as e:
             print(f"[ERROR] Error durante procesamiento: {e}")
             continue
-        
