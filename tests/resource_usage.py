@@ -84,4 +84,4 @@ def run_detection_tests(
 
     cap.release()
     print(f"Detection test completed. Total photos taken: {photo_count}")
-    print(f"Data saved to {output_csv}")
+    print(f"Data saved to {output_csv}resource_usage_{timestamp}.csv")

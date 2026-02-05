@@ -1,5 +1,6 @@
 """Run test cases for the resource usage detection module."""
 
+from main import str2bool
 import argparse
 from tests.resource_usage import run_detection_tests
 from tests.resource_usage_server import (
@@ -26,21 +27,47 @@ if __name__ == "__main__":
     parser.add_argument(
         "--image_format",
         type=str,
-        default=None,
+        default="png",
         help="Formato de Imagen",
     )
+    parser.add_argument(
+        "--rpi",
+        type=str2bool,
+        default=True,
+        help="Execution on Raspberry Pi (default: True).",
+    )
+    parser.add_argument(
+        "--duration_minutes",
+        type=int,
+        default=10,
+        help="Duración de la ejecución en minutos.",
+    )
+    parser.add_argument(
+        "--interval_seconds",
+        type=int,
+        default=2,
+        help="Intervalo entre capturas en segundos.",
+    )
+
     args = parser.parse_args()
 
     if args.type_inference == "local":
         print("Tests local")
-        run_detection_tests(image_ext=args.image_format) 
+        run_detection_tests(
+            image_ext=args.image_format,
+            rpi=args.rpi,
+            duration_minutes=args.duration_minutes,
+            capture_interval_seconds=args.interval_seconds,
+        )
     elif args.type_inference == "server":
         print("Tests en el servidor")
-        run_detection_tests_server(server_ip=args.server_ip, image_ext=args.image_format)
+        run_detection_tests_server(
+            server_ip=args.server_ip, image_ext=args.image_format
+        )
     elif args.type_inference == "delegation":
         print("Tests Task Delegation en conjunta")
-        run_detection_tests_delegation(server_ip=args.server_ip, image_ext=args.image_format)
+        run_detection_tests_delegation(
+            server_ip=args.server_ip, image_ext=args.image_format
+        )
     else:
         print("Tipo de inferencia no válido: local, server, joint")
-
-
