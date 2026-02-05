@@ -64,13 +64,13 @@ def main():
     # Crear una nueva carpeta para cada ejecución
     if args.type_inference == "local":
         print("Inferencia local")
-        local_main(args.total_duration, args.interval, args.rpi, args.image_format)
+        local_main(args.total_duration, args.interval, args.rpi)
     elif args.type_inference == "server":
         print("Inferencia en el servidor")
-        server_main(args.total_duration, args.interval, args.server_ip, args.image_format)
+        server_main(args.total_duration, args.interval, args.server_ip)
     elif args.type_inference == "joint":
         print("Inferencia en conjunta")
-        joint_detection(args.total_duration, args.interval, args.server_ip, args.image_format)
+        joint_detection(args.total_duration, args.interval, args.server_ip)
     else:
         print("Tipo de inferencia no válido: local, server, joint")
         return None

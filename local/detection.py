@@ -65,7 +65,7 @@ def capture_and_process_images(
             print(f"Foto guardada en: {image_path}")
 
             result_data = image_prediction(model, image_path)
-            os.remove(result_data["path"])
+            # os.remove(result_data["path"])
 
             # Reinicia el temporizador
             start_time = time.time()

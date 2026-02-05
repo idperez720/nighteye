@@ -26,7 +26,7 @@ def init_model(size: str = "x", rpi: bool = False) -> YOLO:
     return model
 
 
-def image_prediction(model: YOLO, image_path: str, image_extension: str) -> Dict[str, Any]:
+def image_prediction(model: YOLO, image_path: str, image_extension: str = "png") -> Dict[str, Any]:
     """
     Realiza la predicción en la imagen y guarda el resultado.
 
